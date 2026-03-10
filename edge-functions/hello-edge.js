@@ -1,8 +1,9 @@
-export default function onRequest(context) {
-  const {geo} = context;
+export default async function onRequest(context) {
+
+  const testData = await r1.get("test");
 
   return new Response(JSON.stringify({
-    message: 'Hello Edge!',
+    message: testData,
     geo: geo,
   }), {
     headers: {
