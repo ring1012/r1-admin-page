@@ -31,6 +31,11 @@ const Features = () => {
       title: "Edge Functions",
       description: "Run code in Edge Runtime, no server management required",
       demoLink: "/edge-functions"
+    },
+    {
+      title: "Message Configuration",
+      description: "Dynamically configure containers via targeted message payload",
+      demoLink: "/message?ip=192.168.2.105"
     }
   ]
 
@@ -52,4 +57,3 @@ const Features = () => {
   )
 }
 
-export default Features 
