@@ -3,36 +3,6 @@ import FeatureCard from './FeatureCard'
 const Features = () => {
   const features = [
     {
-      title: "Server-Side Rendering (SSR)",
-      description: "Real-time rendering through the server after each request",
-      demoLink: "/ssr"
-    },
-    {
-      title: "Incremental Static Regeneration (ISR)",
-      description: "Static generation + scheduled incremental updates",
-      demoLink: "/isr"
-    },
-    {
-      title: "Static Site Generation (SSG)",
-      description: "Pre-generate all pages at build time",
-      demoLink: "/ssg"
-    },
-    {
-      title: "Streaming",
-      description: "Step-by-step rendering of page content, enhancing user experience",
-      demoLink: "/streaming"
-    },
-    {
-      title: "Node Functions",
-      description: "Run code in Node Runtime, no server management required",
-      demoLink: "/node-functions"
-    },
-    {
-      title: "Edge Functions",
-      description: "Run code in Edge Runtime, no server management required",
-      demoLink: "/edge-functions"
-    },
-    {
       title: "Message Configuration",
       description: "Dynamically configure containers via targeted message payload",
       demoLink: "/message?ip=192.168.2.105"
@@ -57,4 +27,4 @@ const Features = () => {
   )
 }
 
-export default Features 
+export default Features;

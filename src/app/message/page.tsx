@@ -23,28 +23,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
-const initialData = [
-  {
-    name: "启用AI-指定容器地址",
-    what: 65536,
-    arg1: 2,
-    arg2: 1,
-    obj: "r1.huan.dedyn.io",
-    modifiable: ["arg2", "obj"],
-  },
-];
-
 function MessagePageContent() {
   const searchParams = useSearchParams();
   const ip = searchParams.get("ip");
 
+  const [initialData, setInitialData] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [open, setOpen] = useState(false);
   const [selectedName, setSelectedName] = useState<string>("");
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitStatus, setSubmitStatus] = useState<{type: 'success' | 'error', message: string} | null>(null);
+  const [submitStatus, setSubmitStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
 
-  const selectedItem = initialData.find((item) => item.name === selectedName);
+  useEffect(() => {
+    const fetchCommands = async () => {
+      try {
+        const res = await fetch('/api/commands');
+        if (res.ok) {
+          const data = await res.json();
+          // The API might return the array directly or wrapped in an object
+          setInitialData(Array.isArray(data) ? data : (data.commands || []));
+        }
+      } catch (error) {
+        console.error("Failed to fetch commands:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCommands();
+  }, []);
+
+  const selectedItem = initialData.find((item: any) => item.name === selectedName);
 
   // When a new item is selected, initialize the form data with its values
   useEffect(() => {
@@ -66,14 +75,14 @@ function MessagePageContent() {
     // If original value was number, parse it
     const originalValue = selectedItem?.[key as keyof typeof selectedItem];
     let parsedValue: string | number = value;
-    
+
     if (typeof originalValue === "number") {
       const num = Number(value);
       if (!isNaN(num) && value !== "") {
         parsedValue = num;
       }
     }
-    
+
     setFormData((prev) => ({ ...prev, [key]: parsedValue }));
   };
 
@@ -89,8 +98,8 @@ function MessagePageContent() {
     setSubmitStatus(null);
 
     try {
-      const targetUrl = `http://${ip}:18888/api/message`;
-      
+      const targetUrl = `http://${ip}/api/message`;
+
       const response = await fetch(targetUrl, {
         method: "POST",
         headers: {
@@ -116,6 +125,15 @@ function MessagePageContent() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center gap-4 text-neutral-400">
+        <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+        <p className="font-medium tracking-wide">Fetching commands...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-neutral-950 flex items-center justify-center p-4">
       {/* Background gradients */}
@@ -127,7 +145,7 @@ function MessagePageContent() {
       <Card className="w-full max-w-lg shadow-2xl bg-neutral-900/80 backdrop-blur-xl border-neutral-800 text-neutral-100 z-10 transition-all duration-300">
         <CardHeader>
           <CardTitle className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">
-            Configure Container
+            小讯配置
           </CardTitle>
           <CardDescription className="text-neutral-400 font-medium tracking-wide">
             {ip ? (
@@ -146,7 +164,7 @@ function MessagePageContent() {
             )}
           </CardDescription>
         </CardHeader>
-        
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-3 flex flex-col">
@@ -203,7 +221,7 @@ function MessagePageContent() {
                   if (key === "name" || key === "modifiable") return null;
 
                   const isModifiable = selectedItem.modifiable.includes(key);
-                  
+
                   return (
                     <div key={key} className="space-y-2">
                       <Label htmlFor={key} className="text-neutral-400 text-xs font-semibold tracking-wider uppercase flex justify-between items-center">
@@ -236,8 +254,8 @@ function MessagePageContent() {
               </div>
             )}
 
-            <Button 
-              type="submit" 
+            <Button
+              type="submit"
               disabled={!selectedItem || !ip || isSubmitting}
               className="w-full h-12 bg-neutral-100 text-neutral-950 hover:bg-neutral-300 font-bold tracking-wide shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.2)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-neutral-100"
             >
