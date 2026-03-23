@@ -103,7 +103,7 @@ function MessagePageContent() {
       const response = await fetch(targetUrl, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          "Content-Type": "application/json; charset=UTF-8",
         },
         body: JSON.stringify({
           what: formData.what,
@@ -265,7 +265,7 @@ function MessagePageContent() {
                   <span className="text-neutral-500">Processing...</span>
                 </>
               ) : (
-                "Deploy Command"
+                "执行命令"
               )}
             </Button>
           </form>
