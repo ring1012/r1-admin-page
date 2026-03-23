@@ -20,6 +20,7 @@ const Header = () => {
     { href: '/streaming', label: 'Streaming' },
     { href: '/node-functions', label: 'Node Functions' },
     { href: '/edge-functions', label: 'Edge Functions' },
+    { href: '/message', label: 'Message' },
   ]
 
   return (
