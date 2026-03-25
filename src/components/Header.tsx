@@ -13,13 +13,7 @@ const Header = () => {
   }
 
   const navigationItems = [
-    { href: '/', label: 'Home' },
-    { href: '/ssr', label: 'SSR' },
-    { href: '/isr', label: 'ISR' },
-    { href: '/ssg', label: 'SSG' },
-    { href: '/streaming', label: 'Streaming' },
-    { href: '/node-functions', label: 'Node Functions' },
-    { href: '/edge-functions', label: 'Edge Functions' },
+    { href: '/', label: 'About' },
     { href: '/message', label: 'Message' },
   ]
 
@@ -30,10 +24,7 @@ const Header = () => {
         <div className="hidden lg:flex items-center justify-between relative">
           <a href="https://pages.edgeone.ai" target="_blank" rel="noopener noreferrer">
             <div className="flex items-center space-x-3">
-              <div className="w-6 h-6 rounded-full flex items-center justify-center">
-                <img src="/eo-logo-blue.svg" alt="EdgeOne Pages" width={32} height={32} />
-              </div>
-              <h1 className="text-lg font-semibold">EdgeOne Pages</h1>
+              <h1 className="text-lg font-semibold">小讯后台管理</h1>
             </div>
           </a>
 
@@ -58,9 +49,9 @@ const Header = () => {
 
           {/* GitHub */}
           <div className="flex items-center space-x-4">
-            <a 
-              href="https://github.com/TencentEdgeOne/next-mix-render-template" 
-              target="_blank" 
+            <a
+              href="https://github.com/ring1012/r1-dummy"
+              target="_blank"
               rel="noopener noreferrer"
             >
               <div className="w-6 h-6 text-gray-400 rounded-full flex items-center justify-center">
@@ -85,18 +76,16 @@ const Header = () => {
         <div className="lg:hidden flex items-center justify-between">
           <a href="/" target="_blank" rel="noopener noreferrer">
             <div className="flex items-center space-x-2">
-              <div className="w-5 h-5 rounded-full flex items-center justify-center">
-                <img src="/eo-logo-blue.svg" alt="EdgeOne Pages" width={24} height={24} />
-              </div>
-              <h1 className="text-base font-semibold">EdgeOne Pages</h1>
+
+              <h1 className="text-base font-semibold">小讯后台管理</h1>
             </div>
           </a>
 
           <div className="flex items-center space-x-3">
             {/* GitHub Icon - Mobile */}
-            <a 
-              href="https://github.com/TencentEdgeOne/next-mix-render-template" 
-              target="_blank" 
+            <a
+              href="https://github.com/ring1012/r1-dummy"
+              target="_blank"
               rel="noopener noreferrer"
             >
               <div className="w-5 h-5 text-gray-400 rounded-full flex items-center justify-center">
