@@ -162,7 +162,7 @@ function MessagePageContent() {
               ) : (
                 <span className="flex items-center gap-2 text-yellow-500">
                   <span className="h-2.5 w-2.5 rounded-full bg-yellow-500"></span>
-                  Waiting for target IP parameter
+                  请访问你的音箱ip:18888
                 </span>
               )}
             </CardDescription>

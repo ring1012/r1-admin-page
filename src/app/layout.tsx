@@ -15,10 +15,10 @@ export default function RootLayout({
   return (
     <html lang="en-US" className="dark">
       <head>
-        <link rel="icon" href="/eo-logo-blue.svg" />
+        <link rel="icon" href="/favicon.ico" />
       </head>
       <body className="bg-black text-white antialiased">
-        <NextTopLoader 
+        <NextTopLoader
           color="#3b82f6"
           initialPosition={0.08}
           crawlSpeed={200}

@@ -1,32 +1,40 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { NavigationMenu, NavigationMenuItem, NavigationMenuList, NavigationMenuViewport } from '@/components/ui/navigation-menu'
 import { cn } from '@/lib/utils'
 
-const Header = () => {
+const HeaderContent = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const searchParams = useSearchParams()
+  const ip = searchParams.get('ip')
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen)
   }
 
   const navigationItems = [
-    { href: '/', label: 'About' },
+    { href: '/about', label: 'About' },
     { href: '/message', label: 'Message' },
   ]
+
+  const getFullHref = (href: string) => {
+    if (!ip) return href
+    return `${href}?ip=${ip}`
+  }
 
   return (
     <header className="w-full bg-gray-900/50 backdrop-blur-sm border-b border-gray-800">
       <div className="container mx-auto px-4 py-4">
         {/* Desktop Layout */}
         <div className="hidden lg:flex items-center justify-between relative">
-          <a href="https://pages.edgeone.ai" target="_blank" rel="noopener noreferrer">
-            <div className="flex items-center space-x-3">
-              <h1 className="text-lg font-semibold">小讯后台管理</h1>
+          <Link href={getFullHref('/')}>
+            <div className="flex items-center space-x-3 group">
+              <h1 className="text-lg font-semibold group-hover:text-blue-400 transition-colors">小讯后台管理</h1>
             </div>
-          </a>
+          </Link>
 
           {/* Navigation - Centered */}
           <div className="absolute left-1/2 transform -translate-x-1/2">
@@ -34,7 +42,7 @@ const Header = () => {
               <NavigationMenuList>
                 {navigationItems.map((item) => (
                   <NavigationMenuItem key={item.href}>
-                    <Link href={item.href} className={cn(
+                    <Link href={getFullHref(item.href)} className={cn(
                       "group inline-flex h-10 w-max items-center justify-center rounded-md bg-transparent px-4 py-2 text-sm font-medium transition-colors hover:bg-gray-800 hover:text-white focus:bg-gray-800 focus:text-white focus:outline-none disabled:pointer-events-none disabled:opacity-50",
                       "text-gray-300"
                     )}>
@@ -54,7 +62,7 @@ const Header = () => {
               target="_blank"
               rel="noopener noreferrer"
             >
-              <div className="w-6 h-6 text-gray-400 rounded-full flex items-center justify-center">
+              <div className="w-6 h-6 text-gray-400 rounded-full flex items-center justify-center hover:text-white transition-colors">
                 <svg
                   className="w-6 h-6"
                   fill="currentColor"
@@ -74,12 +82,11 @@ const Header = () => {
 
         {/* Mobile Layout */}
         <div className="lg:hidden flex items-center justify-between">
-          <a href="/" target="_blank" rel="noopener noreferrer">
+          <Link href={getFullHref('/')}>
             <div className="flex items-center space-x-2">
-
               <h1 className="text-base font-semibold">小讯后台管理</h1>
             </div>
-          </a>
+          </Link>
 
           <div className="flex items-center space-x-3">
             {/* GitHub Icon - Mobile */}
@@ -134,7 +141,7 @@ const Header = () => {
               {navigationItems.map((item) => (
                 <Link
                   key={item.href}
-                  href={item.href}
+                  href={getFullHref(item.href)}
                   className="block px-4 py-2 text-sm font-medium text-gray-300 hover:bg-gray-800 hover:text-white rounded-md transition-colors"
                   onClick={() => setIsMobileMenuOpen(false)}
                 >
@@ -149,4 +156,12 @@ const Header = () => {
   )
 }
 
-export default Header 
+const Header = () => {
+  return (
+    <Suspense fallback={<header className="w-full h-[73px] bg-gray-900/50 border-b border-gray-800" />}>
+      <HeaderContent />
+    </Suspense>
+  )
+}
+
+export default Header
