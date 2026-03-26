@@ -3,7 +3,7 @@ import "./globals.css";
 import NextTopLoader from 'nextjs-toploader';
 
 export const metadata: Metadata = {
-  title: "EdgeOne Pages Next.js Starter - Hybrid Rendering Demo",
+  title: "小讯后台管理",
   description: "Using Next.js to build high-performance, scalable Web applications on EdgeOne Pages. Demonstrating SSR, ISR, SSG, Node Functions, and Edge Functions.",
 };
 
