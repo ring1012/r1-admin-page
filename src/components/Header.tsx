@@ -16,8 +16,9 @@ const HeaderContent = () => {
   }
 
   const navigationItems = [
-    { href: '/about', label: 'About' },
-    { href: '/message', label: 'Message' },
+    { href: '/', label: '首页' },
+    { href: '/about', label: '功能指引' },
+    { href: '/message', label: '控制器' },
   ]
 
   const getFullHref = (href: string) => {
