@@ -88,7 +88,7 @@ function AboutContentInner() {
                   <div className="h-5 w-5 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5">
                     <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
                   </div>
-                  仅支持未拆未刷的 <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-none px-1.5">8443版本</Badge> 的小讯设备
+                  仅支持未拆未刷的 <Badge variant="secondary" className="bg-blue-500/10 text-blue-400 border-none px-1.5">3448版本</Badge> 的小讯设备
                 </li>
                 <li className="flex gap-3 text-sm text-neutral-400">
                   <div className="h-5 w-5 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0 mt-0.5">
