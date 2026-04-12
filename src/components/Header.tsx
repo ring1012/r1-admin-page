@@ -19,6 +19,8 @@ const HeaderContent = () => {
     { href: '/', label: '首页' },
     { href: '/about', label: '功能指引' },
     { href: '/message', label: '控制器' },
+    { href: '/music', label: '音乐播放' },
+    { href: '/ai', label: 'AI配置' },
   ]
 
   const getFullHref = (href: string) => {

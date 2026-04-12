@@ -99,24 +99,48 @@ function MessagePageContent() {
     setSubmitStatus(null);
 
     try {
-      const targetUrl = `http://${ip}/api/message`;
+      await new Promise<void>((resolve, reject) => {
+        const ws = new WebSocket(`ws://${ip}/ws/status`);
+        
+        const timeout = setTimeout(() => {
+          ws.close();
+          reject(new Error("Timeout waiting for device response"));
+        }, 5000);
 
-      const response = await fetch(targetUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json; charset=UTF-8",
-        },
-        body: JSON.stringify({
-          what: formData.what,
-          arg1: formData.arg1,
-          arg2: formData.arg2,
-          obj: formData.obj,
-        }),
+        ws.onopen = () => {
+          ws.send(JSON.stringify({
+            action: "message",
+            data: {
+              what: formData.what,
+              arg1: formData.arg1,
+              arg2: formData.arg2,
+              obj: formData.obj,
+            }
+          }));
+        };
+
+        ws.onmessage = (event) => {
+          try {
+            const res = JSON.parse(event.data);
+            if (res.action === "message") {
+              clearTimeout(timeout);
+              ws.close();
+              if (res.status === "ok") {
+                resolve();
+              } else {
+                reject(new Error(res.error || "Unknown server error"));
+              }
+            }
+          } catch (e) {
+            // ignore non-json or unrelated messages like status broadcasts
+          }
+        };
+
+        ws.onerror = () => {
+          clearTimeout(timeout);
+          reject(new Error("WebSocket connection failed"));
+        };
       });
-
-      if (!response.ok) {
-        throw new Error(`Server responded with ${response.status}`);
-      }
 
       setSubmitStatus({ type: 'success', message: "Message sent successfully!" });
     } catch (error: any) {

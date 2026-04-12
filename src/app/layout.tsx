@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import NextTopLoader from 'nextjs-toploader';
+import { MusicProvider } from "@/components/MusicContext";
+import { MiniPlayer } from "@/components/MiniPlayer";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   title: "小讯后台管理",
@@ -30,7 +33,12 @@ export default function RootLayout({
           shadow="0 0 10px #3b82f6, 0 0 5px #3b82f6"
           zIndex={9999}
         />
-        {children}
+        <Suspense fallback={null}>
+          <MusicProvider>
+            {children}
+            <MiniPlayer />
+          </MusicProvider>
+        </Suspense>
       </body>
     </html>
   );

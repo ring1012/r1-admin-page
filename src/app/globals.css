@@ -31,7 +31,26 @@ body {
     width: 100%;
   }
 }
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
 
-.animate-loading-bar {
-  animation: loading-bar 2s ease-in-out infinite;
+.animate-spin-slow {
+  animation: spin 15s linear infinite;
+}
+
+/* Ensure content is not covered by the MiniPlayer */
+body {
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 640px) {
+  body {
+    padding-bottom: 6rem;
+  }
 }
