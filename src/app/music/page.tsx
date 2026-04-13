@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from 'react';
-import { Play, Pause, SkipForward, SkipBack, ListMusic, Volume2, Settings, ArrowLeft, Disc, Music as MusicIcon, Repeat, Repeat1, Shuffle } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Play, Pause, SkipForward, SkipBack, ListMusic, Volume2, Settings, ArrowLeft, Disc, Music as MusicIcon, Repeat, Repeat1, Shuffle, FileText } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import Link from 'next/link';
 import { PageLayout } from '@/components/layout';
+import { useSearchParams } from 'next/navigation';
 
 export default function MusicDetailsPage() {
   const {
@@ -20,7 +21,63 @@ export default function MusicDetailsPage() {
     isConnected,
     ip
   } = useMusic();
+  const searchParams = useSearchParams();
+  
+  const currentSong = states?.playList?.[states?.playIndex] || null;
+  
+  // Extract params from currentSong.url or page URL
+  const getSongParams = () => {
+    if (!currentSong?.url) return { id: searchParams.get('id'), lyricsType: searchParams.get('lyricsType') };
+    try {
+      const url = new URL(currentSong.url.startsWith('http') ? currentSong.url : `http://dummy.com${currentSong.url}`);
+      return {
+        id: url.searchParams.get('id') || searchParams.get('id'),
+        lyricsType: url.searchParams.get('lyricsType') || searchParams.get('lyricsType')
+      };
+    } catch (e) {
+      return { id: searchParams.get('id'), lyricsType: searchParams.get('lyricsType') };
+    }
+  };
+
+  const { id: effectiveId, lyricsType: effectiveLyricsType } = getSongParams();
+
   const [showPlaylist, setShowPlaylist] = useState(true);
+  const [lyrics, setLyrics] = useState<any[]>([]);
+  const [showLyricsInDisc, setShowLyricsInDisc] = useState(false);
+  const [manualShowLyrics, setManualShowLyrics] = useState(false);
+  const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (effectiveId && effectiveLyricsType === 'kuwo') {
+      const fetchLyrics = async () => {
+        setIsLoadingLyrics(true);
+        try {
+          const res = await fetch(`/get-lyric?id=${effectiveId}&type=${effectiveLyricsType}`);
+          const result = await res.json();
+          if (result.code === 200 && result.data?.lrclist) {
+            setLyrics(result.data.lrclist);
+          }
+        } catch (error) {
+          console.error("Failed to fetch lyrics:", error);
+        } finally {
+          setIsLoadingLyrics(false);
+        }
+      };
+      fetchLyrics();
+    } else {
+      setLyrics([]);
+    }
+  }, [effectiveId, effectiveLyricsType]);
+
+  useEffect(() => {
+    if (showLyricsInDisc && scrollRef.current) {
+      const currentLine = scrollRef.current.querySelector('.lyric-active') as HTMLElement;
+      if (currentLine) {
+        currentLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }
+  }, [position?.play_time, showLyricsInDisc]);
 
   if (!isConnected) {
     return (
@@ -44,7 +101,6 @@ export default function MusicDetailsPage() {
     );
   }
 
-  const currentSong = states?.playList?.[states?.playIndex] || null;
   const isPlaying = position?.status === 1 || position?.status === 3;
   const progress = position ? (position.play_time / position.total_time) * 100 : 0;
 
@@ -95,33 +151,114 @@ export default function MusicDetailsPage() {
 
           {/* Main Player Section (LHS) */}
           <div className="lg:col-span-12 xl:col-span-5 flex flex-col items-center justify-center space-y-12">
-            {/* Rotating Disc */}
-            <div className="relative group">
-              {/* Outer Glow */}
-              <div className={`absolute inset-0 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity bg-gradient-to-tr from-purple-500 via-blue-500 to-emerald-500 ${isPlaying ? 'animate-pulse' : ''}`} />
+            {/* Main Player Visual Section */}
+            <div className="relative w-full flex items-center justify-center min-h-[400px] sm:min-h-[500px]">
+              {/* Spinning Disc (Visible when not showing lyrics) */}
+              <div 
+                onClick={() => setShowLyricsInDisc(true)}
+                className={`relative group transition-all duration-700 transform ${showLyricsInDisc ? 'scale-75 opacity-0 pointer-events-none rotate-[-45deg] blur-2xl' : 'scale-100 opacity-100 rotate-0 blur-0'}`}
+              >
+                {/* Outer Glow */}
+                <div className={`absolute inset-0 rounded-full blur-3xl opacity-20 group-hover:opacity-40 transition-opacity bg-gradient-to-tr from-purple-500 via-blue-500 to-emerald-500 ${isPlaying ? 'animate-pulse' : ''}`} />
 
-              {/* Spinning Disc Container */}
-              <div className={`relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border-8 border-neutral-900 shadow-2xl p-2 bg-neutral-950 overflow-hidden ${isPlaying ? 'animate-spin-slow' : ''}`}>
-                <div className="w-full h-full rounded-full overflow-hidden relative border-2 border-neutral-800">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={currentSong?.imgUrl ? `/api/img-proxy?url=${encodeURIComponent(currentSong.imgUrl)}` : "/default-album.png"}
-                    alt="Album Art"
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Record texture overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/30 pointer-events-none" />
-                  <div className="absolute inset-x-0 inset-y-0 border-[20px] border-black/10 rounded-full pointer-events-none" />
+                {/* Spinning Disc Container */}
+                <div className={`relative w-72 h-72 sm:w-80 sm:h-80 md:w-96 md:h-96 rounded-full border-8 border-neutral-900 shadow-2xl p-2 bg-neutral-950 overflow-hidden cursor-pointer ${isPlaying ? 'animate-spin-slow' : ''}`}>
+                  <div className="w-full h-full rounded-full overflow-hidden relative border-2 border-neutral-800">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={currentSong?.imgUrl ? `/api/img-proxy?url=${encodeURIComponent(currentSong.imgUrl)}` : "/default-album.png"}
+                      alt="Album Art"
+                      className="w-full h-full object-cover"
+                    />
+                    {/* Record texture overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/10 via-transparent to-black/30 pointer-events-none" />
+                    <div className="absolute inset-x-0 inset-y-0 border-[20px] border-black/10 rounded-full pointer-events-none" />
 
-                  {/* Center Hole */}
-                  <div className="absolute inset-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-neutral-900 rounded-full border-4 border-neutral-800 flex items-center justify-center">
-                    <div className="w-2 h-2 bg-neutral-700 rounded-full" />
+                    {/* Center Hole */}
+                    <div className="absolute inset-1/2 -translate-x-1/2 -translate-y-1/2 w-16 h-16 bg-neutral-900 rounded-full border-4 border-neutral-800 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-neutral-700 rounded-full" />
+                    </div>
                   </div>
+                </div>
+                
+                {/* Interaction Hint */}
+                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
+                   <span className="text-[10px] font-black uppercase tracking-widest text-neutral-500">点击显示歌词</span>
                 </div>
               </div>
 
-              {/* Tonearm/Needle Visualization (Static but decor) */}
-              <div className="absolute -right-4 top-0 w-2 h-32 bg-neutral-700 origin-top rotate-[15deg] hidden sm:block rounded-full shadow-lg border border-neutral-600/50" />
+              {/* Enhanced Lyrics Panel (Visible when toggled) */}
+              <div 
+                onClick={() => setShowLyricsInDisc(false)}
+                className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-700 transform ${showLyricsInDisc ? 'scale-100 opacity-100 translate-y-0' : 'scale-90 opacity-0 pointer-events-none translate-y-12 blur-xl'}`}
+              >
+                <div className="w-full h-full bg-neutral-900/40 backdrop-blur-2xl border border-neutral-800/80 rounded-[40px] p-8 relative overflow-hidden shadow-2xl cursor-pointer hover:bg-neutral-900/50 transition-colors">
+                  {/* Decorative background gradients */}
+                  <div className="absolute top-0 left-1/4 w-1/2 h-1/2 bg-purple-500/5 blur-[100px] animate-pulse" />
+                  <div className="absolute bottom-0 right-1/4 w-1/2 h-1/2 bg-blue-500/5 blur-[100px]" />
+                  
+                  <div 
+                    ref={scrollRef}
+                    className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col items-center space-y-10 pt-48 pb-48 no-scrollbar scroll-smooth relative z-10"
+                  >
+                    {lyrics.map((line, index) => {
+                      const lyricTime = parseFloat(line.time) * 1000;
+                      const nextLineTime = lyrics[index + 1] ? parseFloat(lyrics[index + 1].time) * 1000 : Infinity;
+                      const offset = 400; // 400ms offset to compensate for lag
+                      const isCurrent = (position?.play_time || 0) + offset >= lyricTime && (position?.play_time || 0) + offset < nextLineTime;
+                      
+                      const gradients = [
+                        'from-rose-400 via-pink-300 to-purple-500',
+                        'from-cyan-400 via-emerald-300 to-blue-500',
+                        'from-amber-400 via-orange-300 to-rose-500',
+                        'from-indigo-400 via-purple-300 to-pink-500'
+                      ];
+                      const currentGradient = gradients[index % gradients.length];
+                      const shadowColors = [
+                        'rgba(244,63,94,0.4)',
+                        'rgba(34,211,238,0.4)',
+                        'rgba(251,191,36,0.4)',
+                        'rgba(129,140,248,0.4)'
+                      ];
+                      const currentShadow = shadowColors[index % shadowColors.length];
+                      
+                      return (
+                        <p 
+                          key={index}
+                          className={`text-center transition-all duration-700 transform px-8 select-none flex items-center justify-center w-full break-words whitespace-normal py-2 ${
+                            isCurrent 
+                              ? `text-2xl font-black scale-110 opacity-100 bg-gradient-to-r ${currentGradient} bg-clip-text text-transparent lyric-active` 
+                              : 'text-2xl font-bold opacity-5 hover:opacity-20 scale-90 text-neutral-400'
+                          }`}
+                          style={{
+                            filter: isCurrent ? `drop-shadow(0 0 20px ${currentShadow})` : 'none',
+                          }}
+                        >
+                          {line.lineLyric}
+                        </p>
+                      );
+                    })}
+                    {lyrics.length === 0 && (
+                      <div className="flex flex-col items-center gap-6 py-20 opacity-50">
+                         <MusicIcon className="w-16 h-16 text-neutral-700" />
+                         <p className="text-neutral-500 font-bold uppercase tracking-widest text-xs">
+                           {isLoadingLyrics ? "Synching Sequence..." : "Lyric Data Unavailable"}
+                         </p>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Hint Overlay - Adjusted for mobile */}
+                  <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] text-neutral-600 opacity-30 hover:opacity-100 transition-opacity hidden sm:block">
+                    点击返回封面
+                  </div>
+                  <div className="absolute top-4 right-6 sm:hidden">
+                    <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[8px] font-black uppercase tracking-widest text-neutral-400">
+                      点击返回
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Song Meta */}
@@ -298,6 +435,13 @@ export default function MusicDetailsPage() {
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover {
           background: #666;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .no-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </PageLayout>
