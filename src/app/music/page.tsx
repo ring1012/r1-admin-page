@@ -72,9 +72,15 @@ export default function MusicDetailsPage() {
 
   useEffect(() => {
     if (showLyricsInDisc && scrollRef.current) {
-      const currentLine = scrollRef.current.querySelector('.lyric-active') as HTMLElement;
+      const container = scrollRef.current;
+      const currentLine = container.querySelector('.lyric-active') as HTMLElement;
       if (currentLine) {
-        currentLine.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Only scroll the internal container, avoiding page-level jumps
+        const targetScrollTop = currentLine.offsetTop - (container.clientHeight / 2) + (currentLine.clientHeight / 2);
+        container.scrollTo({
+          top: targetScrollTop,
+          behavior: 'smooth'
+        });
       }
     }
   }, [position?.play_time, showLyricsInDisc]);
