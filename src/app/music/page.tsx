@@ -208,17 +208,46 @@ export default function MusicDetailsPage() {
                       const isCurrent = (position?.play_time || 0) + offset >= lyricTime && (position?.play_time || 0) + offset < nextLineTime;
                       
                       const gradients = [
-                        'from-rose-400 via-pink-300 to-purple-500',
-                        'from-cyan-400 via-emerald-300 to-blue-500',
-                        'from-amber-400 via-orange-300 to-rose-500',
-                        'from-indigo-400 via-purple-300 to-pink-500'
+                        'from-rose-400 via-pink-400 to-purple-500',
+                        'from-cyan-400 via-blue-500 to-indigo-600',
+                        'from-amber-400 via-orange-500 to-red-600',
+                        'from-emerald-400 via-teal-500 to-cyan-600',
+                        'from-violet-400 via-purple-500 to-fuchsia-600',
+                        'from-lime-400 via-green-500 to-emerald-600',
+                        'from-sky-400 via-blue-500 to-indigo-600',
+                        'from-yellow-400 via-amber-500 to-orange-600',
+                        'from-fuchsia-400 via-pink-500 to-rose-600',
+                        'from-teal-400 via-cyan-500 to-sky-600',
+                        'from-red-400 via-orange-500 to-yellow-500',
+                        'from-indigo-400 via-violet-500 to-purple-600',
+                        'from-rose-500 via-rose-300 to-purple-400',
+                        'from-blue-400 via-cyan-300 to-emerald-400',
+                        'from-orange-400 via-yellow-300 to-amber-500',
+                        'from-purple-400 via-fuchsia-300 to-pink-500',
+                        'from-green-400 via-lime-300 to-yellow-400',
+                        'from-cyan-500 via-sky-300 to-blue-400',
+                        'from-pink-400 via-rose-300 to-amber-400',
+                        'from-teal-500 via-emerald-300 to-lime-400',
+                        'from-violet-500 via-purple-300 to-indigo-400',
+                        'from-amber-500 via-yellow-300 to-white',
+                        'from-rose-400 via-white to-sky-400',
+                        'from-emerald-400 via-white to-purple-400',
+                        'from-orange-400 via-white to-blue-400',
+                        'from-fuchsia-400 via-white to-emerald-400',
+                        'from-blue-600 via-purple-500 to-pink-500',
+                        'from-emerald-600 via-teal-500 to-cyan-500',
+                        'from-yellow-600 via-orange-500 to-red-500',
+                        'from-sky-600 via-indigo-500 to-violet-500'
                       ];
                       const currentGradient = gradients[index % gradients.length];
+                      
                       const shadowColors = [
-                        'rgba(244,63,94,0.4)',
-                        'rgba(34,211,238,0.4)',
-                        'rgba(251,191,36,0.4)',
-                        'rgba(129,140,248,0.4)'
+                        '#fb7185', '#38bdf8', '#fbbf24', '#34d399', '#a78bfa',
+                        '#a3e635', '#0ea5e9', '#facc15', '#e879f9', '#2dd4bf',
+                        '#f87171', '#818cf8', '#f43f5e', '#60a5fa', '#fb923c',
+                        '#c084fc', '#4ade80', '#06b6d4', '#f472b6', '#10b981',
+                        '#8b5cf6', '#f59e0b', '#fda4af', '#a7f3d0', '#fed7aa',
+                        '#f5d0fe', '#2563eb', '#059669', '#d97706', '#4f46e5'
                       ];
                       const currentShadow = shadowColors[index % shadowColors.length];
                       
