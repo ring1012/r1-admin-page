@@ -199,7 +199,7 @@ export default function MusicDetailsPage() {
                   
                   <div 
                     ref={scrollRef}
-                    className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col items-center space-y-10 pt-48 pb-48 no-scrollbar scroll-smooth relative z-10"
+                    className="w-full h-full overflow-y-auto custom-scrollbar flex flex-col items-center pt-48 pb-48 no-scrollbar scroll-smooth relative z-10"
                   >
                     {lyrics.map((line, index) => {
                       const lyricTime = parseFloat(line.time) * 1000;
@@ -254,10 +254,10 @@ export default function MusicDetailsPage() {
                       return (
                         <p 
                           key={index}
-                          className={`text-center transition-all duration-700 transform px-8 select-none flex items-center justify-center w-full break-words whitespace-normal py-2 ${
+                          className={`text-center transition-all duration-700 transform px-8 select-none flex items-center justify-center w-full break-words whitespace-normal min-h-[66px] ${
                             isCurrent 
                               ? `text-2xl font-black scale-110 opacity-100 bg-gradient-to-r ${currentGradient} bg-clip-text text-transparent lyric-active` 
-                              : 'text-2xl font-bold opacity-5 hover:opacity-20 scale-90 text-neutral-400'
+                              : 'text-2xl font-bold opacity-25 hover:opacity-60 scale-90 text-neutral-400'
                           }`}
                           style={{
                             filter: isCurrent ? `drop-shadow(0 0 20px ${currentShadow})` : 'none',
