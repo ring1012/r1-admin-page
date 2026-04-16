@@ -24,12 +24,14 @@ export function ConnectionMask({
     isChrome: boolean;
     isEdge: boolean;
     isFirefox: boolean;
+    is360: boolean;
     isMobile: boolean;
   }>({
     name: 'Unknown',
     isChrome: false,
     isEdge: false,
     isFirefox: false,
+    is360: false,
     isMobile: false
   });
 
