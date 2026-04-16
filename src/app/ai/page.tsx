@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Settings, Shield, Cpu, Save, Zap, AlertCircle, CheckCircle2, Info, Loader2, ArrowLeft } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
+import { ConnectionMask } from '@/components/ConnectionMask';
 import { PageLayout } from '@/components/layout';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,7 +14,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from 'next/link';
 
 export default function AiConfigPage() {
-  const { isConnected, ip, aiConfig, isAiEnabled, queryAiConfig, saveAiConfig } = useMusic();
+  const { isConnected, ip, aiConfig, isAiEnabled, queryAiConfig, saveAiConfig, connectDevice, isConnecting } = useMusic();
 
   const [formData, setFormData] = useState({
     choice: 'OpenAi',
@@ -98,21 +99,13 @@ export default function AiConfigPage() {
   if (!isConnected) {
     return (
       <PageLayout>
-        <div className="min-h-[80vh] flex flex-col items-center justify-center text-center p-6 bg-neutral-950">
-          <div className="w-20 h-20 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-6 animate-pulse border border-red-500/20">
-            <AlertCircle className="w-10 h-10" />
-          </div>
-          <h2 className="text-3xl font-bold text-white mb-4">设备未连接</h2>
-          <p className="text-neutral-400 max-w-md mb-8">
-            无法连接到 R1 音箱。请确保 IP 地址正确且音箱已连接到网络。
-          </p>
-          <Link
-            href={ip ? `/?ip=${ip}` : '/'}
-            className="px-8 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-2xl transition-all border border-neutral-700 font-bold"
-          >
-            返回主页
-          </Link>
-        </div>
+        <ConnectionMask 
+          isConnected={isConnected} 
+          isConnecting={isConnecting} 
+          ip={ip} 
+          onConnect={connectDevice}
+          title="AI 配置 - 设备未连接"
+        />
       </PageLayout>
     );
   }
