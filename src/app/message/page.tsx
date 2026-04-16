@@ -3,6 +3,8 @@
 import { useState, Suspense, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, ChevronsUpDown, Loader2 } from "lucide-react";
+import { useMusic } from "@/components/MusicContext";
+import { ConnectionMask } from "@/components/ConnectionMask";
 import { PageLayout } from '@/components/layout'
 
 import { cn } from "@/lib/utils";
@@ -25,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 function MessagePageContent() {
+  const { isConnected, isConnecting, connectDevice } = useMusic();
   const searchParams = useSearchParams();
   const ip = searchParams.get("ip");
 
@@ -42,7 +45,6 @@ function MessagePageContent() {
         const res = await fetch('/api/commands');
         if (res.ok) {
           const data = await res.json();
-          // The API might return the array directly or wrapped in an object
           setInitialData(Array.isArray(data) ? data : (data.commands || []));
         }
       } catch (error) {
@@ -56,7 +58,6 @@ function MessagePageContent() {
 
   const selectedItem = initialData.find((item: any) => item.name === selectedName);
 
-  // When a new item is selected, initialize the form data with its values
   useEffect(() => {
     if (selectedItem) {
       const initialFormState: Record<string, any> = {};
@@ -73,7 +74,6 @@ function MessagePageContent() {
   }, [selectedItem]);
 
   const handleInputChange = (key: string, value: string) => {
-    // If original value was number, parse it
     const originalValue = selectedItem?.[key as keyof typeof selectedItem];
     let parsedValue: string | number = value;
 
@@ -101,7 +101,6 @@ function MessagePageContent() {
     try {
       await new Promise<void>((resolve, reject) => {
         const ws = new WebSocket(`ws://${ip}/ws/status`);
-        
         const timeout = setTimeout(() => {
           ws.close();
           reject(new Error("Timeout waiting for device response"));
@@ -125,15 +124,10 @@ function MessagePageContent() {
             if (res.action === "message") {
               clearTimeout(timeout);
               ws.close();
-              if (res.status === "ok") {
-                resolve();
-              } else {
-                reject(new Error(res.error || "Unknown server error"));
-              }
+              if (res.status === "ok") resolve();
+              else reject(new Error(res.error || "Unknown server error"));
             }
-          } catch (e) {
-            // ignore non-json or unrelated messages like status broadcasts
-          }
+          } catch (e) {}
         };
 
         ws.onerror = () => {
@@ -156,6 +150,20 @@ function MessagePageContent() {
         <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
         <p className="font-medium tracking-wide">Fetching commands...</p>
       </div>
+    );
+  }
+
+  if (!isConnected) {
+    return (
+      <PageLayout>
+        <ConnectionMask 
+          isConnected={isConnected} 
+          isConnecting={isConnecting} 
+          ip={ip} 
+          onConnect={connectDevice}
+          title="消息控制 - 设备未连接"
+        />
+      </PageLayout>
     );
   }
 
