@@ -83,7 +83,7 @@ export function ConnectionMask({
   const getSettingsLink = () => {
     const site = "https://r1.huan.dedyn.io";
     const encodedSite = encodeURIComponent(site);
-    if (browserInfo.isChrome) return `chrome://settings/content/siteDetails?site=${encodedSite}`;
+    if (browserInfo.isChrome || browserInfo.is360) return `chrome://settings/content/siteDetails?site=${encodedSite}`;
     if (browserInfo.isEdge) return `edge://settings/content/siteDetails?site=${encodedSite}`;
     return null;
   };
