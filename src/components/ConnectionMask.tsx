@@ -44,8 +44,8 @@ export function ConnectionMask({
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const ua = navigator.userAgent;
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const isMobile = ua ? /iPhone|iPad|iPod|Android/i.test(ua) : false;
     const isEdge = ua.indexOf('Edg/') > -1;
     const isFirefox = ua.indexOf('Firefox/') > -1;
     const is360 = ua.indexOf('QIHU 360') > -1 || (ua.indexOf('Chrome') > -1 && !isEdge && (window as any).chrome && (window as any).chrome.webstore === undefined && (navigator as any).mimeTypes && (navigator as any).mimeTypes.length > 30);

@@ -85,8 +85,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     if (isLocal) return;
 
-    const ua = navigator.userAgent;
-    const isMobile = /iPhone|iPad|iPod|Android/i.test(ua);
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
+    const isMobile = ua ? /iPhone|iPad|iPod|Android/i.test(ua) : false;
     const targetHost = isMobile ? 'r1-web.huan.dedyn.io:8080' : 'r1.huan.dedyn.io';
     const targetProtocol = isMobile ? 'http:' : 'https:';
     
