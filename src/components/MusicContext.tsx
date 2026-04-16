@@ -44,6 +44,9 @@ interface MusicContextType {
   isAiEnabled: boolean;
   queryAiConfig: () => void;
   saveAiConfig: (config: any, enabled: boolean) => void;
+  connectDevice: () => void;
+  isConnecting: boolean;
+  protocolError: string | null;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -58,113 +61,102 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const searchParams = useSearchParams();
   const ip = searchParams.get('ip');
   const wsRef = useRef<WebSocket | null>(null);
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [protocolError, setProtocolError] = useState<string | null>(null);
 
-  // 1. Force HTTP redirect to allow insecure WebSocket and enforce specific domain
+  // 1. Force HTTPS redirect and domain enforcement
   useEffect(() => {
-    const targetHost = 'r1-web.huan.dedyn.io:8080';
+    const targetHost = 'r1.huan.dedyn.io';
     const isLocal = typeof window !== 'undefined' &&
       (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
 
     if (!isLocal && typeof window !== 'undefined') {
-      const isHttps = window.location.protocol === 'https:';
+      const isHttp = window.location.protocol === 'http:';
       const isWrongHost = window.location.host !== targetHost;
 
-      if (isHttps || isWrongHost) {
-        console.warn("Redirecting to authorized HTTP domain for compatibility...");
-        const newUrl = `http://${targetHost}${window.location.pathname}${window.location.search}`;
+      if (isHttp || isWrongHost) {
+        console.warn("Redirecting to authorized HTTPS domain for compatibility...");
+        const newUrl = `https://${targetHost}${window.location.pathname}${window.location.search}`;
         window.location.replace(newUrl);
       }
     }
-
   }, []);
 
-  // 2. WebSocket Connection Logic
-  useEffect(() => {
-    // Skip if no IP or if we're still on HTTPS (redirect pending)
-    if (!ip || (typeof window !== 'undefined' && window.location.protocol === 'https:' && window.location.hostname !== 'localhost')) {
-      return;
+  const connectDevice = () => {
+    if (!ip) return;
+    
+    setProtocolError(null);
+    setIsConnecting(true);
+    
+    const sanitizedIp = ip.trim();
+    const wsUrl = `ws://${sanitizedIp}/ws/status`;
+    console.log(`[MusicContext] Manual attempt to connect: ${wsUrl}`);
+
+    if (wsRef.current) {
+      wsRef.current.onclose = null;
+      wsRef.current.close();
     }
+
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
 
     let heartbeatTimer: NodeJS.Timeout | null = null;
 
-    const connect = () => {
-      const wsUrl = `ws://${ip}/ws/status`;
-      console.log(`Connecting to ${wsUrl}...`);
+    ws.onopen = () => {
+      setIsConnected(true);
+      setIsConnecting(false);
+      console.log("WebSocket connected");
+      heartbeatTimer = setInterval(() => {
+        if (ws.readyState === WebSocket.OPEN) {
+          ws.send(JSON.stringify({ 
+            action: "message", 
+            data: { what: -1, arg1: -1, arg2: -1, obj: "keep alive" } 
+          }));
+        }
+      }, 3000);
+    };
 
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-
-      ws.onopen = () => {
-        setIsConnected(true);
-        console.log("WebSocket connected");
-
-        // Start heartbeat to prevent server SocketTimeoutException (usually 5s on NanoHTTPD)
-        heartbeatTimer = setInterval(() => {
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(JSON.stringify({
-              action: "message",
-              data: {
-                what: -1,
-                arg1: -1,
-                arg2: -1,
-                obj: "keep alive",
-              }
-            }));
-          }
-        }, 3000);
-      };
-
-      ws.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.position) setPosition(data.position);
-          if (data.states) setStates(data.states);
-          if (data.volume !== undefined) setVolumeState(data.volume);
-          if (data.action === "ai" && data.data) {
-            if (data.data.enabled !== undefined) setIsAiEnabled(data.data.enabled);
-            if (data.data.config !== undefined) {
-              try {
-                const parsed = JSON.parse(data.data.config);
-                setAiConfig(parsed);
-              } catch (e) {
-                setAiConfig(data.data.config);
-              }
+    ws.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.position) setPosition(data.position);
+        if (data.states) setStates(data.states);
+        if (data.volume !== undefined) setVolumeState(data.volume);
+        
+        // Restore AI config sync logic
+        if (data.action === "ai" && data.data) {
+          if (data.data.enabled !== undefined) setIsAiEnabled(data.data.enabled);
+          if (data.data.config !== undefined) {
+            try {
+              const parsed = JSON.parse(data.data.config);
+              setAiConfig(parsed);
+            } catch (e) {
+              setAiConfig(data.data.config);
             }
           }
-        } catch (e) {
-          // Ignore non-JSON heartbeat responses
         }
-      };
-
-      ws.onerror = (error) => {
-        console.error("WebSocket error", error);
-        setIsConnected(false);
-        if (heartbeatTimer) {
-          clearInterval(heartbeatTimer);
-          heartbeatTimer = null;
-        }
-      };
-
-      ws.onclose = (event) => {
-        setIsConnected(false);
-        if (heartbeatTimer) {
-          clearInterval(heartbeatTimer);
-          heartbeatTimer = null;
-        }
-        console.log(`WebSocket closed: code=${event.code}, reason=${event.reason || 'none'}. Retrying in 3s...`);
-        setTimeout(connect, 3000);
-      };
+      } catch (e) {}
     };
 
-    connect();
+    ws.onerror = (error) => {
+      console.error("WebSocket error", error);
+      setIsConnected(false);
+      setIsConnecting(false);
+    };
 
-    return () => {
+    ws.onclose = (event) => {
+      setIsConnected(false);
+      setIsConnecting(false);
       if (heartbeatTimer) clearInterval(heartbeatTimer);
-      if (wsRef.current) {
-        wsRef.current.onclose = null; // Prevent retry loop on unmount
-        wsRef.current.close();
-      }
+      console.warn(`WebSocket closed: code=${event.code}`);
     };
+  };
+
+  // Auto-connect attempt
+  useEffect(() => {
+    if (ip) {
+      connectDevice();
+    }
   }, [ip]);
 
   const sendWsCommand = (action: string, data?: any) => {
@@ -236,7 +228,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       aiConfig,
       isAiEnabled,
       queryAiConfig,
-      saveAiConfig
+      saveAiConfig,
+      connectDevice,
+      isConnecting,
+      protocolError
     }}>
       {children}
     </MusicContext.Provider>

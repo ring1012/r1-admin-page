@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, SkipBack, ListMusic, Volume2, Settings, ArrowLeft, Disc, Music as MusicIcon, Repeat, Repeat1, Shuffle, FileText } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, ListMusic, Volume2, Settings, Music as MusicIcon, Repeat, Repeat1, Shuffle } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import Link from 'next/link';
 import { PageLayout } from '@/components/layout';
@@ -19,6 +19,9 @@ export default function MusicDetailsPage() {
     setVolume,
     setMode,
     isConnected,
+    connectDevice,
+    isConnecting,
+    protocolError,
     ip
   } = useMusic();
   const searchParams = useSearchParams();
@@ -34,7 +37,7 @@ export default function MusicDetailsPage() {
         id: url.searchParams.get('id') || searchParams.get('id'),
         lyricsType: url.searchParams.get('lyricsType') || searchParams.get('lyricsType')
       };
-    } catch (e) {
+    } catch (_) {
       return { id: searchParams.get('id'), lyricsType: searchParams.get('lyricsType') };
     }
   };
@@ -44,7 +47,6 @@ export default function MusicDetailsPage() {
   const [showPlaylist, setShowPlaylist] = useState(true);
   const [lyrics, setLyrics] = useState<any[]>([]);
   const [showLyricsInDisc, setShowLyricsInDisc] = useState(false);
-  const [manualShowLyrics, setManualShowLyrics] = useState(false);
   const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -94,14 +96,44 @@ export default function MusicDetailsPage() {
           </div>
           <h2 className="text-3xl font-bold text-white mb-4">设备未连接</h2>
           <p className="text-neutral-400 max-w-md mb-8">
-            无法连接到 R1 音箱。请确保 IP 地址正确且音箱已升级到最新版本。
+            无法连接到 R1 音箱。部分浏览器需要用户手动点击下方按钮才能授权访问本地网络。
           </p>
-          <Link
-            href={ip ? `/?ip=${ip}` : '/'}
-            className="px-8 py-3 bg-neutral-800 hover:bg-neutral-700 text-white rounded-2xl transition-all border border-neutral-700 font-bold"
-          >
-            返回主页
-          </Link>
+          
+          <div className="bg-red-500/5 border border-neutral-800/80 rounded-2xl p-6 mb-8 max-w-lg text-left w-full">
+            <h3 className="text-blue-400 font-bold mb-3 flex items-center gap-2">
+              <Settings className="w-4 h-4" /> 连接确认
+            </h3>
+            <ul className="text-sm text-neutral-400 space-y-3 list-disc pl-4">
+              <li>
+                <span className="text-white font-medium">目标 IP:</span> <code className="text-purple-400 bg-purple-400/10 px-1 rounded">{ip || '未指定'}</code>
+              </li>
+              <li>
+                <span className="text-white font-medium">权限说明:</span> 如果您使用的是 HTTPS 访问，请确保已在浏览器设置中开启“允许不安全内容”。
+              </li>
+              <li>
+                <span className="text-white font-medium">网络环境:</span> 确保您的电脑与音箱处于同一局域网网段。
+              </li>
+            </ul>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4">
+            <button
+              onClick={() => connectDevice()}
+              disabled={isConnecting}
+              className="px-10 py-4 bg-white text-black hover:bg-neutral-200 disabled:bg-neutral-800 disabled:text-neutral-500 rounded-2xl transition-all font-black uppercase tracking-widest shadow-xl flex items-center gap-3"
+            >
+              {isConnecting ? (
+                <div className="w-4 h-4 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+              ) : <Play className="w-4 h-4 fill-current" />}
+              {isConnecting ? "正在连接..." : "立即尝试连接设备"}
+            </button>
+            <Link
+              href={ip ? `/?ip=${ip}` : '/'}
+              className="px-10 py-4 bg-neutral-900 hover:bg-neutral-800 text-white rounded-2xl transition-all border border-neutral-800 font-bold"
+            >
+              返回主页
+            </Link>
+          </div>
         </div>
       </PageLayout>
     );
