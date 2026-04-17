@@ -9,20 +9,28 @@ export default async function onRequest(context) {
     });
   }
 
-  if (type !== 'kuwo') {
+  let fetchUrl = '';
+  let fetchHeaders = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  };
+
+  if (type === 'kuwo') {
+    fetchUrl = `https://www.kuwo.cn/openapi/v1/www/lyric/getlyric?musicId=${id}&httpsStatus=1&reqId=105&plat=web_www&from=lrc`;
+    fetchHeaders["Referer"] = "https://www.kuwo.cn/play_detail/";
+  } else if (type === 'youtube') {
+    fetchUrl = `https://yt.huan.dedyn.io/youtube/music/getlyric?videoId=${id}`;
+  } else {
     return new Response(JSON.stringify({ code: 200, msg: "success", data: { lrclist: [] } }), {
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+      },
     });
   }
 
-  const kuwoUrl = `https://www.kuwo.cn/openapi/v1/www/lyric/getlyric?musicId=${id}&httpsStatus=1&reqId=105&plat=web_www&from=lrc`;
-
   try {
-    const response = await fetch(kuwoUrl, {
-      headers: {
-        "Referer": "https://www.kuwo.cn/play_detail/",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-      },
+    const response = await fetch(fetchUrl, {
+      headers: fetchHeaders,
     });
 
     const data = await response.json();
