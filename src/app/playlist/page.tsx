@@ -29,6 +29,7 @@ export default function MusicPage() {
   const [playlists, setPlaylists] = useState<Playlist[]>([]);
   const [currentPlaylist, setCurrentPlaylist] = useState<Playlist | null>(null);
   const [playlistSongs, setPlaylistSongs] = useState<PlaySong[]>([]);
+  const [activePopoverIndex, setActivePopoverIndex] = useState<number | null>(null);
 
   // Create Playlist Modal
   const [showCreate, setShowCreate] = useState(false);
@@ -143,6 +144,7 @@ export default function MusicPage() {
           return prev;
         });
       }
+      setActivePopoverIndex(null);
     } catch (e) {
       console.error(e);
     }
@@ -452,7 +454,7 @@ export default function MusicPage() {
                       >
                         <Play className="w-3.5 h-3.5 fill-current" />
                       </button>
-                      <Popover>
+                      <Popover open={activePopoverIndex === i} onOpenChange={(open) => setActivePopoverIndex(open ? i : null)}>
                         <PopoverTrigger asChild>
                           <button
                             className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-purple-500 text-neutral-400 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-purple-500"
