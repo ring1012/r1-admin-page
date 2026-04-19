@@ -193,7 +193,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
-  // Auto-connect attempt
+  // Auto-connect logic on IP initialization
   useEffect(() => {
     if (ip) {
       connectDevice();

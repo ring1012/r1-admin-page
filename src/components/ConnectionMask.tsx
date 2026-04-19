@@ -80,6 +80,19 @@ export function ConnectionMask({
     setCurrentUrlInfo({ protocol, host, isRecommended });
   }, []);
 
+  // Auto-reconnect timer
+  useEffect(() => {
+    let timer: NodeJS.Timeout | null = null;
+    if (!isConnected && !isConnecting && ip) {
+      timer = setInterval(() => {
+        onConnect();
+      }, 3000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [isConnected, isConnecting, ip, onConnect]);
+
   if (isConnected) return null;
 
   const getSettingsLink = () => {
@@ -111,7 +124,6 @@ export function ConnectionMask({
       <p className="text-neutral-400 max-w-lg mb-10 text-lg leading-relaxed">
         无法连接到 R1 音箱。现代浏览器出于安全考虑，限制了网页对本地网络设备的访问权限。
       </p>
-      
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full mb-12">
         {/* Method 1: Browser Settings */}
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-[32px] p-8 text-left backdrop-blur-xl flex flex-col">
@@ -207,6 +219,13 @@ export function ConnectionMask({
           </div>
         </div>
       </div>
+
+      {/* Auto-reconnect status */}
+      {!isConnected && !isConnecting && (
+        <div className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/60 animate-pulse">
+           Auto-reconnect active: Retrying in 3s...
+        </div>
+      )}
 
       <div className="flex flex-col sm:flex-row gap-4 w-full max-w-md">
         <button
