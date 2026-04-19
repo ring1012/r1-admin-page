@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { PageLayout } from '@/components/layout';
 import { useMusic, PlaySong } from '@/components/MusicContext';
+import { ConnectionMask } from '@/components/ConnectionMask';
 import { Search, Heart, Plus, Play, MoreVertical, ListMusic, Trash2, Cpu, Zap, Library, PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -17,7 +18,7 @@ interface Playlist {
 }
 
 export default function MusicPage() {
-  const { isConnected, ip, searchMusic, searchResult, play, serial: wsSerial } = useMusic();
+  const { isConnected, ip, searchMusic, searchResult, play, serial: wsSerial, isConnecting, connectDevice, playList } = useMusic();
   const [keyword, setKeyword] = useState('');
   const [localSerial, setLocalSerial] = useState('default-serial');
 
@@ -90,15 +91,15 @@ export default function MusicPage() {
 
   const handleSearch = () => {
     if (!keyword.trim() || isSearching) return;
-    
+
     setIsSearching(true);
     searchMusic(keyword);
 
-    // Auto-reset searching state after 15s fallback
+    // Auto-reset searching state after 35s fallback
     if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
     searchTimeoutRef.current = setTimeout(() => {
       setIsSearching(false);
-    }, 15000);
+    }, 35000);
   };
 
   // Reset searching state when searchResult arrives
@@ -187,7 +188,32 @@ export default function MusicPage() {
   };
 
   const playSong = (song: any) => {
-    alert(`这首歌已保存，需要发送控制命令到音箱进行播放: ${song.title}`);
+    playList({
+      index: 0,
+      itemList: [{ ...song, itemType: song.itemType || 0 }],
+      pageIndex: 0,
+      totalPage: 1
+    });
+  };
+
+  const playAllResults = () => {
+    if (results.length === 0) return;
+    playList({
+      index: 0,
+      itemList: results.map((s: any) => ({ ...s, itemType: s.itemType || 0 })),
+      pageIndex: 0,
+      totalPage: 1
+    });
+  };
+
+  const playCurrentPlaylist = () => {
+    if (playlistSongs.length === 0) return;
+    playList({
+      index: 0,
+      itemList: playlistSongs.map((s: any) => ({ ...s, itemType: s.itemType || 0 })),
+      pageIndex: 0,
+      totalPage: 1
+    });
   };
 
   const parseSearchResultList = () => {
@@ -214,6 +240,20 @@ export default function MusicPage() {
     } catch (e) { }
   };
 
+  if (!isConnected) {
+    return (
+      <PageLayout>
+        <ConnectionMask 
+          isConnected={isConnected} 
+          isConnecting={isConnecting} 
+          ip={ip || ''} 
+          onConnect={connectDevice}
+          title="音箱设备未连接"
+        />
+      </PageLayout>
+    );
+  }
+
   return (
     <PageLayout>
       <div className="max-w-7xl mx-auto py-12 px-4 h-[calc(100vh-80px)] flex flex-col pt-8">
@@ -238,14 +278,13 @@ export default function MusicPage() {
                   className="bg-neutral-900/50 border-neutral-700 h-14 pl-12 rounded-[24px] focus:ring-purple-500 text-white w-full backdrop-blur-xl"
                 />
                 <Search className="w-6 h-6 absolute left-4 top-4 text-neutral-400" />
-                <Button 
-                  onClick={handleSearch} 
+                <Button
+                  onClick={handleSearch}
                   disabled={isSearchDisabled}
-                  className={`absolute right-1 top-1 bottom-1 h-12 rounded-[20px] text-white px-6 font-bold shadow-lg transition-all duration-300 ${
-                    isSearchDisabled 
-                    ? 'bg-neutral-800 cursor-not-allowed opacity-50 text-neutral-500' 
-                    : 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/30'
-                  }`}
+                  className={`absolute right-1 top-1 bottom-1 h-12 rounded-[20px] text-white px-6 font-bold shadow-lg transition-all duration-300 ${isSearchDisabled
+                      ? 'bg-neutral-800 cursor-not-allowed opacity-50 text-neutral-500'
+                      : 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/30'
+                    }`}
                 >
                   {isSearching ? (
                     <div className="flex items-center gap-2">
@@ -328,15 +367,35 @@ export default function MusicPage() {
                 ) : (
                   <>
                     <Library className="w-5 h-5 text-neutral-600" />
-                    <h2 className="text-xl font-black text-neutral-600 italic">待索引...</h2>
+                    <h2 className="text-xl font-black text-neutral-600 italic">音乐列表...</h2>
                   </>
                 )}
               </div>
 
               {showPlaylistMode && (
-                <div className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[8px] font-black uppercase tracking-widest">
-                  正在查看本地歌单
+                <div className="flex items-center gap-3">
+                  <div className="px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-[8px] font-black uppercase tracking-widest">
+                    正在查看本地歌单
+                  </div>
+                  <Button
+                    size="sm"
+                    onClick={playCurrentPlaylist}
+                    className="h-8 rounded-full bg-purple-600 hover:bg-purple-500 text-white font-bold px-4 flex items-center gap-2 shadow-lg shadow-purple-900/20"
+                  >
+                    <Play className="w-3.5 h-3.5 fill-current" />
+                    <span>一键播放</span>
+                  </Button>
                 </div>
+              )}
+              {!showPlaylistMode && results.length > 0 && (
+                <Button
+                  size="sm"
+                  onClick={playAllResults}
+                  className="h-8 rounded-full bg-amber-500 hover:bg-amber-400 text-white font-bold px-4 flex items-center gap-2 shadow-lg shadow-amber-900/20"
+                >
+                  <Play className="w-3.5 h-3.5 fill-current" />
+                  <span>全部播放</span>
+                </Button>
               )}
             </div>
 
@@ -363,15 +422,15 @@ export default function MusicPage() {
                         <span className="text-[10px] text-neutral-500 truncate font-medium uppercase tracking-tighter">{song.artist}</span>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 pr-1">
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); removeFromPlaylist(song.itemId); }} 
-                          className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-red-500 text-neutral-500 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-red-500" 
+                        <button
+                          onClick={(e) => { e.stopPropagation(); removeFromPlaylist(song.itemId); }}
+                          className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-red-500 text-neutral-500 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-red-500"
                           title="从歌单移除"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                         <button className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-purple-500 text-neutral-400 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-purple-500" onClick={(e) => { e.stopPropagation(); playSong(song); }}>
-                           <Play className="w-3.5 h-3.5" />
+                          <Play className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
@@ -386,17 +445,17 @@ export default function MusicPage() {
                       <span className="text-[10px] text-neutral-500 truncate font-medium uppercase tracking-tighter">{song.artist}</span>
                     </div>
                     <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0 pr-1">
-                      <button 
-                        onClick={() => addToPlaylist(song, 'default')} 
-                        className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-rose-500 text-neutral-400 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-rose-500" 
-                        title="添加到我的收藏"
+                      <button
+                        onClick={() => playSong(song)}
+                        className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-purple-500 text-neutral-400 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-purple-500"
+                        title="立即播放"
                       >
-                        <Heart className="w-3.5 h-3.5" />
+                        <Play className="w-3.5 h-3.5 fill-current" />
                       </button>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <button 
-                            className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-purple-500 text-neutral-400 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-purple-500" 
+                          <button
+                            className="w-8 h-8 flex items-center justify-center bg-neutral-900 hover:bg-purple-500 text-neutral-400 hover:text-white rounded-lg transition-all border border-neutral-800 hover:border-purple-500"
                             title="添加到歌单"
                           >
                             <Plus className="w-3.5 h-3.5" />
@@ -405,9 +464,9 @@ export default function MusicPage() {
                         <PopoverContent className="bg-neutral-900/95 backdrop-blur-xl border-neutral-800 text-white rounded-2xl shadow-2xl overflow-hidden p-1 min-w-[140px] w-auto">
                           <div className="px-3 py-2 text-[8px] font-black uppercase tracking-widest text-neutral-500 border-b border-white/5 mb-1">选择目标歌单</div>
                           {playlists.map(p => (
-                            <div 
-                              key={p.uuid} 
-                              onClick={() => addToPlaylist(song, p.uuid)} 
+                            <div
+                              key={p.uuid}
+                              onClick={() => addToPlaylist(song, p.uuid)}
                               className="hover:bg-purple-500/20 hover:text-purple-300 cursor-pointer rounded-lg px-3 py-2 font-bold text-xs transition-colors flex items-center gap-2"
                             >
                               <ListMusic className="w-3 h-3 opacity-50" />
@@ -422,11 +481,11 @@ export default function MusicPage() {
               ) : (
                 /* Empty/Initial State */
                 <div className="h-full flex flex-col items-center justify-center text-neutral-700 gap-4 mt-12">
-                   <Search className="w-12 h-12 opacity-20" />
-                   <div className="text-center">
-                     <p className="font-black text-xs uppercase tracking-widest opacity-20">Ready to search</p>
-                     <p className="text-[10px] font-medium opacity-10 mt-1 italic">Enter a keyword or select a playlist</p>
-                   </div>
+                  <Search className="w-12 h-12 opacity-20" />
+                  <div className="text-center">
+                    <p className="font-black text-xs uppercase tracking-widest opacity-20">Ready to search</p>
+                    <p className="text-[10px] font-medium opacity-10 mt-1 italic">Enter a keyword or select a playlist</p>
+                  </div>
                 </div>
               )}
             </div>

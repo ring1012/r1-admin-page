@@ -10,11 +10,10 @@ export function MiniPlayer() {
   const { position, states, play, pause, next, prev, isConnected, ip } = useMusic();
   const pathname = usePathname();
 
-  // Hide on music details page or if no background music
-  if (pathname === '/music' || !isConnected || !states?.playList?.length) return null;
+  // Hide on music details page or if not connected
+  if (pathname === '/music' || !isConnected) return null;
 
-  const currentSong = states.playList[states.playIndex];
-  if (!currentSong) return null;
+  const currentSong = states?.playList && states.playIndex !== undefined ? states.playList[states.playIndex] : null;
 
   const progress = position ? (position.play_time / position.total_time) * 100 : 0;
   const isPlaying = position?.status === 1 || position?.status === 3;
@@ -52,7 +51,7 @@ export function MiniPlayer() {
           <Link href={currentHref('/music')} className="flex items-center gap-3 min-w-0 flex-1 group">
             <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-neutral-800 flex items-center justify-center shrink-0 overflow-hidden relative border border-neutral-700/50 transition-transform duration-500`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-purple-500/20 to-blue-500/20 opacity-0 group-hover:opacity-100 transition-opacity z-10" />
-                {currentSong.imgUrl ? (
+                {currentSong?.imgUrl ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img 
                     src={`/api/img-proxy?url=${encodeURIComponent(currentSong.imgUrl)}`} 
@@ -63,14 +62,14 @@ export function MiniPlayer() {
                   <Music className="w-6 h-6 text-neutral-400" />
                 )}
                 {/* Vinyl effect overlay */}
-                {currentSong.imgUrl && <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none" />}
+                {currentSong?.imgUrl && <div className="absolute inset-0 rounded-full border border-white/5 pointer-events-none" />}
             </div>
             <div className="min-w-0">
               <h4 className="text-xs sm:text-sm font-bold text-white truncate leading-tight group-hover:text-purple-400 transition-colors">
-                {currentSong.title || '未知曲目'}
+                {currentSong?.title || '未在播放'}
               </h4>
               <p className="text-[10px] sm:text-xs text-neutral-500 truncate mt-0.5 font-medium uppercase tracking-tighter">
-                {currentSong.artist || '未知艺术家'}
+                {currentSong?.artist || '小讯播放器'}
               </p>
             </div>
           </Link>

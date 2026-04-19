@@ -59,6 +59,7 @@ interface MusicContextType {
   searchMusic: (keyword: string) => void;
   searchResult: any;
   serial: string | null;
+  playList: (data: { index: number; itemList: PlaySong[]; pageIndex: number; totalPage: number }) => Promise<void>;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -257,6 +258,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     sendWsCommand('search', { keyword });
   };
 
+  const playList = async (data: { index: number; itemList: PlaySong[]; pageIndex: number; totalPage: number }) => {
+    sendWsCommand('play_list', data);
+  };
+
   return (
     <MusicContext.Provider value={{
       position,
@@ -279,7 +284,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       protocolError,
       searchMusic,
       searchResult,
-      serial
+      serial,
+      playList
     }}>
       {children}
       

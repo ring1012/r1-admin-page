@@ -135,8 +135,16 @@ export default async function onRequest(context) {
         let songsData = await kv.get(pKey);
         let songs = songsData ? JSON.parse(songsData) : [];
 
-        // Prevent duplicates
-        if (!songs.some(s => s.itemId === song.itemId)) {
+        // Check 100 songs limit
+        if (songs.length >= 100) {
+          return new Response(JSON.stringify({ error: '每个歌单最多只能添加100首歌' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        }
+
+        // Prevent duplicates using url as unique identifier
+        if (!songs.some(s => s.url === song.url)) {
           songs.push(song);
           await kv.put(pKey, JSON.stringify(songs));
         }
