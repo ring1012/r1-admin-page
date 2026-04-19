@@ -56,6 +56,9 @@ interface MusicContextType {
   connectDevice: () => void;
   isConnecting: boolean;
   protocolError: string | null;
+  searchMusic: (keyword: string) => void;
+  searchResult: any;
+  serial: string | null;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -72,6 +75,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [protocolError, setProtocolError] = useState<string | null>(null);
+  const [searchResult, setSearchResult] = useState<any>(null);
+  const [serial, setSerialState] = useState<string | null>(null);
 
   const [recommendation, setRecommendation] = useState<{ url: string; target: string } | null>(null);
 
@@ -147,6 +152,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
         if (data.position) setPosition(data.position);
         if (data.states) setStates(data.states);
         if (data.volume !== undefined) setVolumeState(data.volume);
+        if (data.serial) setSerialState(data.serial);
         
         // Restore AI config sync logic
         if (data.action === "ai" && data.data) {
@@ -158,6 +164,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             } catch (e) {
               setAiConfig(data.data.config);
             }
+          }
+        }
+
+        if (data.action === "search_result" && data.data) {
+          try {
+            const parsed = JSON.parse(data.data);
+            setSearchResult(parsed);
+          } catch (e) {
+            console.error("Failed to parse search result", e);
           }
         }
       } catch (e) {}
@@ -237,6 +252,11 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     // But let's follow the user's provided structure.
   };
 
+  const searchMusic = (keyword: string) => {
+    setSearchResult(null);
+    sendWsCommand('search', { keyword });
+  };
+
   return (
     <MusicContext.Provider value={{
       position,
@@ -256,7 +276,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       saveAiConfig,
       connectDevice,
       isConnecting,
-      protocolError
+      protocolError,
+      searchMusic,
+      searchResult,
+      serial
     }}>
       {children}
       
