@@ -248,7 +248,7 @@ export default function MusicPage() {
 
   const rawResults = sourceType === 'custom' 
     ? (customSearchResult?.itemList || customSearchResult?.musicList || customSearchResult?.musicinfo || []) 
-    : (searchResult?.itemList || searchResult?.musicResult?.itemList || searchResult?.musicList || []);
+    : (searchResult?.itemList || searchResult?.musicResult?.itemList || searchResult?.musicList || searchResult?.musicinfo || []);
 
   const results = rawResults.map((song: any) => ({
     ...song,
