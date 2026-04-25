@@ -246,9 +246,15 @@ export default function MusicPage() {
     });
   };
 
-  const results = sourceType === 'custom' 
-    ? (customSearchResult?.itemList || customSearchResult?.musicList || []) 
+  const rawResults = sourceType === 'custom' 
+    ? (customSearchResult?.itemList || customSearchResult?.musicList || customSearchResult?.musicinfo || []) 
     : (searchResult?.itemList || searchResult?.musicResult?.itemList || searchResult?.musicList || []);
+
+  const results = rawResults.map((song: any) => ({
+    ...song,
+    itemId: song.itemId || song.id || '',
+    itemType: song.itemType || 0
+  }));
 
   const showPlaylistMode = keyword.startsWith('歌单：') || keyword.startsWith('歌单:');
   const isSearchDisabled = isSearching || showPlaylistMode;
