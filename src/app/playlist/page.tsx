@@ -9,6 +9,14 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 
 interface Playlist {
   uuid: string;
@@ -21,6 +29,10 @@ export default function MusicPage() {
   const { isConnected, ip, searchMusic, searchResult, play, serial: wsSerial, isConnecting, connectDevice, playList } = useMusic();
   const [keyword, setKeyword] = useState('');
   const [localSerial, setLocalSerial] = useState('default-serial');
+  const [sourceType, setSourceType] = useState<'default' | 'custom'>('default');
+  const [musicApi, setMusicApi] = useState('');
+  const [customSearchResult, setCustomSearchResult] = useState<any>(null);
+
 
   const currentSerial = wsSerial || localSerial;
   const [isSearching, setIsSearching] = React.useState(false);
@@ -90,17 +102,37 @@ export default function MusicPage() {
     }
   }, [currentPlaylist, currentSerial]);
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!keyword.trim() || isSearching) return;
 
     setIsSearching(true);
-    searchMusic(keyword);
+    
+    if (sourceType === 'default') {
+      searchMusic(keyword);
+    } else {
+      try {
+        const res = await fetch(`/api/search?musicApi=${encodeURIComponent(musicApi)}&keyword=${encodeURIComponent(keyword)}`);
+        if (res.ok) {
+          const data = await res.json();
+          setCustomSearchResult(data);
+        } else {
+          console.error('Custom search failed');
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        setIsSearching(false);
+      }
+    }
 
-    if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
-    searchTimeoutRef.current = setTimeout(() => {
-      setIsSearching(false);
-    }, 35000);
+    if (sourceType === 'default') {
+      if (searchTimeoutRef.current) clearTimeout(searchTimeoutRef.current);
+      searchTimeoutRef.current = setTimeout(() => {
+        setIsSearching(false);
+      }, 35000);
+    }
   };
+
 
   useEffect(() => {
     if (searchResult && isSearching) {
@@ -214,7 +246,10 @@ export default function MusicPage() {
     });
   };
 
-  const results = searchResult?.itemList || searchResult?.musicList || [];
+  const results = sourceType === 'custom' 
+    ? (customSearchResult?.itemList || customSearchResult?.musicList || []) 
+    : (searchResult?.itemList || searchResult?.musicResult?.itemList || searchResult?.musicList || []);
+
   const showPlaylistMode = keyword.startsWith('歌单：') || keyword.startsWith('歌单:');
   const isSearchDisabled = isSearching || showPlaylistMode;
 
@@ -259,33 +294,59 @@ export default function MusicPage() {
           </div>
 
           <div className="flex w-full md:w-auto items-center gap-2">
-            <div className="relative w-full md:w-80 flex items-end">
-              <div className="w-full">
-                <Input
-                  placeholder="搜歌名、歌手..."
-                  value={keyword}
-                  onChange={e => setKeyword(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSearch()}
-                  className="bg-neutral-900/50 border-neutral-700 h-12 sm:h-14 pl-10 sm:pl-12 rounded-[20px] sm:rounded-[24px] focus:ring-purple-500 text-white w-full backdrop-blur-xl text-sm"
-                />
-                <Search className="w-5 h-5 sm:w-6 sm:h-6 absolute left-3.5 top-3.5 sm:left-4 sm:top-4 text-neutral-400" />
-                <Button
-                  onClick={handleSearch}
-                  disabled={isSearchDisabled}
-                  className={`absolute right-1 top-1 bottom-1 h-10 sm:h-12 rounded-[16px] sm:rounded-[20px] text-white px-4 sm:px-6 font-bold shadow-lg transition-all duration-300 ${isSearchDisabled
-                      ? 'bg-neutral-800 cursor-not-allowed opacity-50 text-neutral-500'
-                      : 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/30'
-                    }`}
-                >
-                  {isSearching ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
-                    </div>
-                  ) : showPlaylistMode ? '歌单模式' : '搜索'}
-                </Button>
+            <div className="flex flex-col gap-2 w-full md:w-auto">
+              <div className="flex items-center gap-2">
+                <Select value={sourceType} onValueChange={(v: any) => setSourceType(v)}>
+                  <SelectTrigger className="w-[160px] bg-neutral-900/50 border-neutral-700 h-12 sm:h-14 rounded-[20px] sm:rounded-[24px] text-white backdrop-blur-xl">
+                    <SelectValue placeholder="选择源" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-neutral-900 border-neutral-700 text-white">
+                    <SelectItem value="default">小讯默认音乐源</SelectItem>
+                    <SelectItem value="custom">自定义</SelectItem>
+                  </SelectContent>
+                </Select>
+
+                <div className="relative w-full md:w-80 flex items-end">
+                  <div className="w-full">
+                    <Input
+                      placeholder="搜歌名、歌手..."
+                      value={keyword}
+                      onChange={e => setKeyword(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && handleSearch()}
+                      className="bg-neutral-900/50 border-neutral-700 h-12 sm:h-14 pl-10 sm:pl-12 rounded-[20px] sm:rounded-[24px] focus:ring-purple-500 text-white w-full backdrop-blur-xl text-sm"
+                    />
+                    <Search className="w-5 h-5 sm:w-6 sm:h-6 absolute left-3.5 top-3.5 sm:left-4 sm:top-4 text-neutral-400" />
+                    <Button
+                      onClick={handleSearch}
+                      disabled={isSearchDisabled}
+                      className={`absolute right-1 top-1 bottom-1 h-10 sm:h-12 rounded-[16px] sm:rounded-[20px] text-white px-4 sm:px-6 font-bold shadow-lg transition-all duration-300 ${isSearchDisabled
+                          ? 'bg-neutral-800 cursor-not-allowed opacity-50 text-neutral-500'
+                          : 'bg-purple-600 hover:bg-purple-500 shadow-purple-900/30'
+                        }`}
+                    >
+                      {isSearching ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                        </div>
+                      ) : showPlaylistMode ? '歌单模式' : '搜索'}
+                    </Button>
+                  </div>
+                </div>
               </div>
+              
+              {sourceType === 'custom' && (
+                <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+                  <Input
+                    placeholder="请输入自定义接口地址 (例如: http://api.example.com)"
+                    value={musicApi}
+                    onChange={e => setMusicApi(e.target.value)}
+                    className="bg-neutral-900/50 border-neutral-700 h-10 rounded-xl focus:ring-purple-500 text-white w-full backdrop-blur-xl text-xs"
+                  />
+                </div>
+              )}
             </div>
           </div>
+
         </div>
 
         <div className="flex-1 min-h-0 flex flex-col md:flex-row gap-4 sm:gap-8">
