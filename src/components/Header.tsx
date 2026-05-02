@@ -21,6 +21,7 @@ const HeaderContent = () => {
     { href: '/message', label: '控制器' },
     { href: '/playlist', label: '音乐与歌单' },
     { href: '/music', label: '正在播放' },
+    { href: '/versions', label: '版本管理' },
     { href: '/ai', label: 'AI配置' },
     { href: '/services', label: '服务配置' },
   ]
