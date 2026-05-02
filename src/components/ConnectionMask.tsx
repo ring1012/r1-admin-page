@@ -121,9 +121,17 @@ export function ConnectionMask({
       </div>
       
       <h2 className="text-4xl font-black text-white mb-4 tracking-tighter">{title}</h2>
-      <p className="text-neutral-400 max-w-lg mb-10 text-lg leading-relaxed">
+      <p className="text-neutral-400 max-w-lg mb-8 text-lg leading-relaxed">
         无法连接到 R1 音箱。现代浏览器出于安全考虑，限制了网页对本地网络设备的访问权限。
       </p>
+
+      <div className="bg-amber-500/10 border border-amber-500/30 rounded-[20px] p-5 mb-10 max-w-lg w-full flex items-center justify-center gap-3 shadow-[0_0_30px_rgba(245,158,11,0.15)] relative overflow-hidden group">
+        <div className="absolute inset-0 bg-gradient-to-r from-amber-500/0 via-amber-500/10 to-amber-500/0 translate-x-[-100%] animate-[shimmer_2s_infinite]" />
+        <AlertTriangle className="w-6 h-6 text-amber-400 shrink-0 animate-pulse" />
+        <span className="text-amber-400 font-bold text-base tracking-wide z-10">
+          如果长时间无法连接，请尝试 <span className="text-amber-300 font-black border-b-2 border-amber-500/50 pb-0.5">手动重启音箱</span>
+        </span>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full mb-12">
         {/* Method 1: Browser Settings */}
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-[32px] p-8 text-left backdrop-blur-xl flex flex-col">
