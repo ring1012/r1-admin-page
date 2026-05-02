@@ -8,7 +8,7 @@ import { ConnectionMask } from "@/components/ConnectionMask";
 import { PageLayout } from '@/components/layout';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
@@ -222,13 +222,17 @@ function VersionsPageContent() {
                 </DialogDescription>
               </DialogHeader>
               <DialogFooter className="mt-6 gap-3">
-                <Button variant="ghost" className="hover:bg-neutral-800">取消</Button>
-                <Button 
-                  className="bg-blue-600 hover:bg-blue-500 text-white font-bold"
-                  onClick={() => handleUpgrade(type)}
-                >
-                  确认并升级
-                </Button>
+                <DialogClose asChild>
+                  <Button variant="ghost" className="hover:bg-neutral-800">取消</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-500 text-white font-bold"
+                    onClick={() => handleUpgrade(type)}
+                  >
+                    确认并升级
+                  </Button>
+                </DialogClose>
               </DialogFooter>
             </DialogContent>
           </Dialog>
