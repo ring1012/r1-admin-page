@@ -22,6 +22,7 @@ const HeaderContent = () => {
     { href: '/playlist', label: '音乐与歌单' },
     { href: '/music', label: '正在播放' },
     { href: '/ai', label: 'AI配置' },
+    { href: '/services', label: '服务配置' },
   ]
 
   const getFullHref = (href: string) => {

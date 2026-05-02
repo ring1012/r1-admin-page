@@ -60,6 +60,9 @@ interface MusicContextType {
   searchResult: any;
   serial: string | null;
   playList: (data: { index: number; itemList: PlaySong[]; pageIndex: number; totalPage: number }) => Promise<void>;
+  weatherConfig: any;
+  queryWeatherConfig: () => void;
+  saveWeatherConfig: (config: any) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -71,6 +74,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [isConnected, setIsConnected] = useState(false);
   const [aiConfig, setAiConfig] = useState<any>(null);
   const [isAiEnabled, setIsAiEnabled] = useState(false);
+  const [weatherConfig, setWeatherConfig] = useState<any>(null);
   const searchParams = useSearchParams();
   const ip = searchParams.get('ip');
   const wsRef = useRef<WebSocket | null>(null);
@@ -168,6 +172,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
           }
         }
 
+        if (data.action === "weather" && data.data) {
+          try {
+            const parsed = typeof data.data.config === 'string' ? JSON.parse(data.data.config) : data.data.config;
+            setWeatherConfig(parsed);
+          } catch (e) {
+            setWeatherConfig(data.data.config);
+          }
+        }
+
         if (data.action === "search_result" && data.data) {
           try {
             const parsed = JSON.parse(data.data);
@@ -262,6 +275,15 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     sendWsCommand('play_list', data);
   };
 
+  const queryWeatherConfig = () => sendWsCommand('weather', { type: 'query' });
+
+  const saveWeatherConfig = (config: any) => {
+    sendWsCommand('weather', {
+      type: 'save',
+      config: JSON.stringify(config)
+    });
+  };
+
   return (
     <MusicContext.Provider value={{
       position,
@@ -285,7 +307,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       searchMusic,
       searchResult,
       serial,
-      playList
+      playList,
+      weatherConfig,
+      queryWeatherConfig,
+      saveWeatherConfig,
     }}>
       {children}
       
