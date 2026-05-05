@@ -26,7 +26,7 @@ export function EqPanel() {
   ];
 
   const nxpEffects = [
-    { key: 'nxpVolume', label: 'NXP音量 (Volume)', value: eqData?.nxpVolume ?? 0, min: -6000, max: 0, desc: '单位: mB (软增益/衰减控制)' },
+    { key: 'nxpVolume', label: 'NXP音量 (Volume)', value: eqData?.nxpVolume ?? 0, min: -3000, max: 0, desc: '单位: mB (软增益/衰减控制)' },
   ];
 
   const effects = [
@@ -34,7 +34,7 @@ export function EqPanel() {
   ];
 
   const aospEffects = [
-    { key: 'loudness', label: '响度增强 (Loudness)', value: eqData?.loudness ?? 0, min: 0, max: 3000, desc: '单位: mB (0 ~ 3000)' },
+    { key: 'loudness', label: '响度增强 (Loudness)', value: eqData?.loudness ?? 0, min: 0, max: 1500, desc: '单位: mB (0 ~ 1500)' },
   ];
 
 
