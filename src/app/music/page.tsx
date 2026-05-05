@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from 'react';
-import { Play, Pause, SkipForward, SkipBack, ListMusic, Volume2, Settings, Music as MusicIcon, Repeat, Repeat1, Shuffle } from 'lucide-react';
+import { Play, Pause, SkipForward, SkipBack, ListMusic, Volume2, Settings, Music as MusicIcon, Repeat, Repeat1, Shuffle, Minus, Plus } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import { ConnectionMask } from '@/components/ConnectionMask';
 import Link from 'next/link';
 import { PageLayout } from '@/components/layout';
 import { useSearchParams } from 'next/navigation';
+import { EqPanel } from '@/components/EqPanel';
 
 export default function MusicDetailsPage() {
   const {
@@ -26,6 +27,23 @@ export default function MusicDetailsPage() {
     ip
   } = useMusic();
   const searchParams = useSearchParams();
+  const [showPlaylist, setShowPlaylist] = useState(false);
+  const [volumeLocked, setVolumeLocked] = useState(true);
+  const [showLockHint, setShowLockHint] = useState(false);
+  const hintTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const toggleVolumeLock = () => {
+    setVolumeLocked(!volumeLocked);
+    setShowLockHint(false);
+  };
+
+  const handleSliderInteraction = () => {
+    if (volumeLocked) {
+      setShowLockHint(true);
+      if (hintTimeoutRef.current) clearTimeout(hintTimeoutRef.current);
+      hintTimeoutRef.current = setTimeout(() => setShowLockHint(false), 2000);
+    }
+  };
   
   const currentSong = states?.playList?.[states?.playIndex] || null;
   
@@ -45,7 +63,6 @@ export default function MusicDetailsPage() {
 
   const { id: effectiveId, lyricsType: effectiveLyricsType } = getSongParams();
 
-  const [showPlaylist, setShowPlaylist] = useState(true);
   const [lyrics, setLyrics] = useState<any[]>([]);
   const [showLyricsInDisc, setShowLyricsInDisc] = useState(false);
   const [isLoadingLyrics, setIsLoadingLyrics] = useState(false);
@@ -380,21 +397,80 @@ export default function MusicDetailsPage() {
                 </button>
               </div>
 
-              {/* Volume */}
-              <div className="flex items-center gap-6 pt-2">
-                <div className="flex items-center gap-3 shrink-0">
-                  <Volume2 className="w-6 h-6 text-neutral-500" />
-                  <span className="text-white font-bold text-sm min-w-[20px]">{volume}</span>
+              {/* Volume Control Section */}
+              <div className="space-y-4 pt-2">
+                <div className="flex items-center justify-between">
+                  <div className="relative shrink-0">
+                    <button 
+                      onClick={toggleVolumeLock}
+                      className={`w-12 h-12 flex items-center justify-center rounded-2xl transition-all ${volumeLocked ? 'bg-neutral-800 text-neutral-500' : 'bg-purple-500 text-white shadow-lg shadow-purple-500/20'}`}
+                    >
+                      <Volume2 className="w-6 h-6" />
+                      {volumeLocked && (
+                        <div className="absolute top-1 right-1 w-4 h-4 bg-rose-500 rounded-full flex items-center justify-center border-2 border-neutral-900">
+                          <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                        </div>
+                      )}
+                    </button>
+                    
+                    {showLockHint && (
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 px-3 py-1.5 bg-rose-500 text-white text-[10px] font-black whitespace-nowrap rounded-lg shadow-xl animate-bounce">
+                        滑块已锁定，点击解锁
+                        <div className="absolute top-full left-1/2 -translate-x-1/2 border-8 border-transparent border-t-rose-500" />
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex-1 px-4 text-center">
+                    <h4 className="text-xs font-black text-neutral-500 uppercase tracking-widest">音量控制</h4>
+                  </div>
+
+                  <div className="flex items-center gap-2 bg-neutral-900/50 p-1.5 rounded-2xl border border-neutral-800">
+                    <button
+                      onClick={() => setVolume(Math.max(0, volume - 1))}
+                      className="w-12 h-10 flex items-center justify-center rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-all active:scale-90"
+                    >
+                      <Minus className="w-5 h-5" />
+                    </button>
+                    <div className="min-w-[60px] text-center border-x border-neutral-800 px-2">
+                      <span className="text-white font-black text-lg">{volume}</span>
+                      <span className="text-neutral-500 text-[10px] ml-1 font-bold">/ 15</span>
+                    </div>
+                    <button
+                      onClick={() => setVolume(Math.min(15, volume + 1))}
+                      className="w-12 h-10 flex items-center justify-center rounded-xl hover:bg-neutral-800 text-neutral-400 hover:text-white transition-all active:scale-90"
+                    >
+                      <Plus className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="100"
-                  step="10"
-                  value={volume * 10}
-                  className="flex-1 h-1.5 bg-neutral-800 rounded-lg appearance-none cursor-pointer accent-white"
-                  onChange={(e) => setVolume(Math.round(parseInt(e.target.value) / 10))}
-                />
+
+                {/* Slider Row - Clickable even when locked to show hint */}
+                <div 
+                  className="relative px-2 py-4"
+                  onClick={handleSliderInteraction}
+                >
+                  <div className={`transition-all duration-300 ${volumeLocked ? 'opacity-40 grayscale blur-[1px]' : 'opacity-100'}`}>
+                    <input
+                      type="range"
+                      min="0"
+                      max="15"
+                      step="1"
+                      value={volume}
+                      disabled={volumeLocked}
+                      className={`w-full h-2 bg-neutral-800 rounded-lg appearance-none cursor-pointer ${volumeLocked ? 'pointer-events-none' : 'accent-white'}`}
+                      onChange={(e) => setVolume(parseInt(e.target.value))}
+                    />
+                    <div className="flex justify-between mt-2 px-1">
+                      {[0, 5, 10, 15].map(v => (
+                        <span key={v} className="text-[9px] font-bold text-neutral-600">{v}</span>
+                      ))}
+                    </div>
+                  </div>
+                  {volumeLocked && (
+                    <div className="absolute inset-0 z-10 cursor-pointer" onClick={handleSliderInteraction} />
+                  )}
+                </div>
               </div>
             </div>
 
@@ -474,6 +550,7 @@ export default function MusicDetailsPage() {
           scrollbar-width: none;
         }
       `}</style>
+      <EqPanel />
     </PageLayout>
   );
 }

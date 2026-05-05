@@ -40,7 +40,7 @@ export interface PlayAllStates {
 interface MusicContextType {
   position: PlayPositionInfo | null;
   states: PlayAllStates | null;
-  volume: number; // Volume 0-10
+  volume: number; // Volume 0-15
   isConnected: boolean;
   ip: string | null;
   play: (index?: number) => Promise<void>;
@@ -63,6 +63,9 @@ interface MusicContextType {
   weatherConfig: any;
   queryWeatherConfig: () => void;
   saveWeatherConfig: (config: any) => void;
+  eqData: any;
+  queryEq: () => void;
+  setEq: (data: any) => void;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
@@ -82,6 +85,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [protocolError, setProtocolError] = useState<string | null>(null);
   const [searchResult, setSearchResult] = useState<any>(null);
   const [serial, setSerialState] = useState<string | null>(null);
+  const [eqData, setEqData] = useState<any>(null);
 
   const [recommendation, setRecommendation] = useState<{ url: string; target: string } | null>(null);
 
@@ -189,6 +193,10 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             console.error("Failed to parse search result", e);
           }
         }
+
+        if (data.action === "eq" && data.data) {
+          setEqData(data.data);
+        }
       } catch (e) {}
     };
 
@@ -284,6 +292,13 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const queryEq = () => sendWsCommand('eq', { type: 'query' });
+  const setEq = (data: any) => {
+    // Optimistic update
+    setEqData((prev: any) => ({ ...prev, ...data }));
+    sendWsCommand('eq', { type: 'set', ...data });
+  };
+
   return (
     <MusicContext.Provider value={{
       position,
@@ -311,6 +326,9 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       weatherConfig,
       queryWeatherConfig,
       saveWeatherConfig,
+      eqData,
+      queryEq,
+      setEq,
     }}>
       {children}
       

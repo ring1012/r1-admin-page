@@ -98,6 +98,22 @@ function VersionsPageContent() {
     }
   }, [isConnected, ip]);
 
+  const [cooldowns, setCooldowns] = useState<Record<string, number>>({});
+  const [now, setNow] = useState(Date.now());
+
+  useEffect(() => {
+    // Load cooldowns from localStorage
+    const saved = localStorage.getItem('upgrade_cooldowns');
+    if (saved) {
+      try {
+        setCooldowns(JSON.parse(saved));
+      } catch (e) {}
+    }
+
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
   const handleUpgrade = async (type: 'echo' | 'unisound') => {
     if (!ip) return;
     setIsUpgrading(type);
@@ -138,6 +154,11 @@ function VersionsPageContent() {
         };
       });
 
+      // Set 5 minute cooldown
+      const newCooldowns = { ...cooldowns, [type]: Date.now() + 5 * 60 * 1000 };
+      setCooldowns(newCooldowns);
+      localStorage.setItem('upgrade_cooldowns', JSON.stringify(newCooldowns));
+
       alert("升级指令已发送成功，设备即将开始下载并安装。");
     } catch (error: any) {
       alert("升级失败: " + error.message);
@@ -164,6 +185,12 @@ function VersionsPageContent() {
     const current = currentVersions[type];
     const latest = latestVersions[type];
     const hasUpdate = current !== null && latest !== null && current < latest;
+    
+    const cooldownTime = cooldowns[type] || 0;
+    const isCoolingDown = now < cooldownTime;
+    const secondsRemaining = Math.ceil((cooldownTime - now) / 1000);
+    const minutes = Math.floor(secondsRemaining / 60);
+    const seconds = secondsRemaining % 60;
 
     return (
       <Card className="bg-neutral-900/80 backdrop-blur-xl border-neutral-800 text-neutral-100 overflow-hidden group">
@@ -173,7 +200,7 @@ function VersionsPageContent() {
               <CardTitle className="text-2xl font-bold">{title}</CardTitle>
               <CardDescription className="mt-1 text-neutral-400">{desc}</CardDescription>
             </div>
-            {hasUpdate && (
+            {hasUpdate && !isCoolingDown && (
               <Badge className="bg-blue-500/20 text-blue-400 border-blue-500/30 animate-pulse">
                 有新版本
               </Badge>
@@ -183,12 +210,12 @@ function VersionsPageContent() {
         <CardContent className="space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800/50">
-              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">当前版本</p>
-              <p className="text-xl font-mono text-neutral-200">{current || '---'}</p>
+              <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">当前版本</p>
+              <p className="text-sm sm:text-xl font-mono text-neutral-200 truncate">{current || '---'}</p>
             </div>
             <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800/50">
-              <p className="text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">最新版本</p>
-              <p className="text-xl font-mono text-neutral-200">{latest || '---'}</p>
+              <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">最新版本</p>
+              <p className="text-sm sm:text-xl font-mono text-neutral-200 truncate">{latest || '---'}</p>
             </div>
           </div>
 
@@ -201,15 +228,19 @@ function VersionsPageContent() {
             <DialogTrigger asChild>
               <Button 
                 className="w-full h-12 font-bold tracking-wide" 
-                disabled={!hasUpdate || isUpgrading === type}
-                variant={hasUpdate ? "default" : "secondary"}
+                disabled={!hasUpdate || isUpgrading === type || isCoolingDown}
+                variant={hasUpdate && !isCoolingDown ? "default" : "secondary"}
               >
                 {isUpgrading === type ? (
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
+                ) : isCoolingDown ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2 opacity-50" />
                 ) : (
                   <ArrowUpCircle className="w-5 h-5 mr-2" />
                 )}
-                {hasUpdate ? "立即升级" : "已是最新"}
+                {isCoolingDown 
+                  ? `冷却中 (${minutes}:${seconds.toString().padStart(2, '0')})`
+                  : isUpgrading === type ? "处理中..." : (hasUpdate ? "立即升级" : "已是最新")}
               </Button>
             </DialogTrigger>
             <DialogContent className="bg-neutral-900 border-neutral-800 text-neutral-100">
