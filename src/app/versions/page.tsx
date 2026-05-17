@@ -245,8 +245,8 @@ function VersionsPageContent() {
             <DialogTrigger asChild>
               <Button 
                 className="w-full h-12 font-bold tracking-wide" 
-                disabled={!hasUpdate || isUpgrading === type || isCoolingDown}
-                variant={hasUpdate && !isCoolingDown ? "default" : "secondary"}
+                disabled={!hasUpdate || isUpgrading !== null || isCoolingDown}
+                variant={hasUpdate && !isCoolingDown && isUpgrading === null ? "default" : "secondary"}
               >
                 {isUpgrading === type ? (
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
