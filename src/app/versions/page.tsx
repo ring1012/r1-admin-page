@@ -131,6 +131,8 @@ function VersionsPageContent() {
     return () => clearInterval(timer);
   }, []);
 
+  const isAnyCoolingDown = Object.values(cooldowns).some(cooldownTime => now < cooldownTime);
+
   const handleUpgrade = async (type: 'echo' | 'unisound') => {
     if (!ip) return;
     setIsUpgrading(type);
@@ -245,8 +247,8 @@ function VersionsPageContent() {
             <DialogTrigger asChild>
               <Button 
                 className="w-full h-12 font-bold tracking-wide" 
-                disabled={!hasUpdate || isUpgrading !== null || isCoolingDown}
-                variant={hasUpdate && !isCoolingDown && isUpgrading === null ? "default" : "secondary"}
+                disabled={!hasUpdate || isUpgrading !== null || isAnyCoolingDown}
+                variant={hasUpdate && !isCoolingDown && isUpgrading === null && !isAnyCoolingDown ? "default" : "secondary"}
               >
                 {isUpgrading === type ? (
                   <Loader2 className="w-5 h-5 animate-spin mr-2" />
