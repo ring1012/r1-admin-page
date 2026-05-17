@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Cloud, Save, CheckCircle2, AlertCircle, Loader2, ChevronDown, Settings2, Info } from 'lucide-react';
+import { Cloud, Music, BookOpen, Save, CheckCircle2, AlertCircle, Info, Settings2 } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import { ConnectionMask } from '@/components/ConnectionMask';
 import { PageLayout } from '@/components/layout';
@@ -157,10 +157,183 @@ function WeatherConfigCard() {
   );
 }
 
+// ─── Music Service Config Section ─────────────────────────────────────────────
+
+function MusicServiceCard() {
+  const { musicServiceConfig, queryMusicServiceConfig, saveMusicServiceConfig } = useMusic();
+
+  const [provider, setProvider] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    queryMusicServiceConfig();
+  }, []);
+
+  useEffect(() => {
+    if (musicServiceConfig?.provider) setProvider(musicServiceConfig.provider);
+  }, [musicServiceConfig]);
+
+  const handleSave = () => {
+    saveMusicServiceConfig({ provider });
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  return (
+    <Card className="bg-neutral-900/40 border-neutral-800 rounded-[40px] overflow-hidden backdrop-blur-2xl shadow-2xl">
+      <CardHeader className="p-8 pb-4">
+        <div className="space-y-1">
+          <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+            <Music className="w-5 h-5 text-violet-400" />
+            音乐服务配置
+          </CardTitle>
+          <CardDescription className="text-neutral-500">
+            选择 AI 播放音乐时使用的数据来源，影响歌曲搜索与播放质量
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="p-8 pt-4 space-y-6">
+        {/* Provider Select */}
+        <div className="space-y-2">
+          <Label htmlFor="music-provider" className="text-xs font-black uppercase tracking-widest text-neutral-400">
+            音乐来源
+          </Label>
+          <Select value={provider} onValueChange={(v) => { setProvider(v); setIsSaved(false); }}>
+            <SelectTrigger
+              id="music-provider"
+              className="bg-neutral-950 border-neutral-800 rounded-2xl h-12 text-white"
+            >
+              <SelectValue placeholder="选择音乐来源" />
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-900 border-neutral-800 text-white rounded-2xl">
+              <SelectItem value="default">🎵 默认 (Default)</SelectItem>
+              <SelectItem value="youtube">▶️ YouTube Music</SelectItem>
+              <SelectItem value="bilibili">📺 哔哩哔哩 (Bilibili)</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-neutral-600 mt-1">
+            选择后，AI 响应音乐请求时将优先使用该来源
+          </p>
+        </div>
+
+        {/* Current Value */}
+        {musicServiceConfig && (
+          <div className="p-3 rounded-2xl bg-violet-500/5 border border-violet-500/15 text-[11px] text-neutral-400">
+            <span className="text-violet-400 font-bold">当前配置：</span>{' '}
+            {musicServiceConfig.provider === 'default' ? '默认' :
+             musicServiceConfig.provider === 'youtube' ? 'YouTube Music' :
+             musicServiceConfig.provider === 'bilibili' ? '哔哩哔哩' :
+             musicServiceConfig.provider}
+          </div>
+        )}
+
+        {/* Save Button */}
+        <Button
+          className="w-full h-14 rounded-3xl font-black text-sm uppercase tracking-widest transition-all bg-violet-600 hover:bg-violet-700 text-white shadow-[0_10px_30px_rgba(139,92,246,0.3)]"
+          onClick={handleSave}
+        >
+          {isSaved ? (
+            <><CheckCircle2 className="w-5 h-5 mr-2" /> 已保存</>
+          ) : (
+            <><Save className="w-5 h-5 mr-2" /> 保存音乐配置</>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ─── Story Service Config Section ─────────────────────────────────────────────
+
+function StoryServiceCard() {
+  const { storyServiceConfig, queryStoryServiceConfig, saveStoryServiceConfig } = useMusic();
+
+  const [provider, setProvider] = useState('');
+  const [isSaved, setIsSaved] = useState(false);
+
+  useEffect(() => {
+    queryStoryServiceConfig();
+  }, []);
+
+  useEffect(() => {
+    if (storyServiceConfig?.provider) setProvider(storyServiceConfig.provider);
+  }, [storyServiceConfig]);
+
+  const handleSave = () => {
+    saveStoryServiceConfig({ provider });
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 3000);
+  };
+
+  return (
+    <Card className="bg-neutral-900/40 border-neutral-800 rounded-[40px] overflow-hidden backdrop-blur-2xl shadow-2xl">
+      <CardHeader className="p-8 pb-4">
+        <div className="space-y-1">
+          <CardTitle className="text-xl font-bold text-white flex items-center gap-2">
+            <BookOpen className="w-5 h-5 text-amber-400" />
+            故事服务配置
+          </CardTitle>
+          <CardDescription className="text-neutral-500">
+            选择 AI 播放故事或有声读物时使用的数据来源
+          </CardDescription>
+        </div>
+      </CardHeader>
+      <CardContent className="p-8 pt-4 space-y-6">
+        {/* Provider Select */}
+        <div className="space-y-2">
+          <Label htmlFor="story-provider" className="text-xs font-black uppercase tracking-widest text-neutral-400">
+            故事来源
+          </Label>
+          <Select value={provider} onValueChange={(v) => { setProvider(v); setIsSaved(false); }}>
+            <SelectTrigger
+              id="story-provider"
+              className="bg-neutral-950 border-neutral-800 rounded-2xl h-12 text-white"
+            >
+              <SelectValue placeholder="选择故事来源" />
+            </SelectTrigger>
+            <SelectContent className="bg-neutral-900 border-neutral-800 text-white rounded-2xl">
+              <SelectItem value="youtube">▶️ YouTube</SelectItem>
+              <SelectItem value="bilibili">📺 哔哩哔哩 (Bilibili)</SelectItem>
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-neutral-600 mt-1">
+            选择后，AI 响应故事请求时将优先使用该来源
+          </p>
+        </div>
+
+        {/* Current Value */}
+        {storyServiceConfig && (
+          <div className="p-3 rounded-2xl bg-amber-500/5 border border-amber-500/15 text-[11px] text-neutral-400">
+            <span className="text-amber-400 font-bold">当前配置：</span>{' '}
+            {storyServiceConfig.provider === 'youtube' ? 'YouTube' :
+             storyServiceConfig.provider === 'bilibili' ? '哔哩哔哩' :
+             storyServiceConfig.provider}
+          </div>
+        )}
+
+        {/* Save Button */}
+        <Button
+          className="w-full h-14 rounded-3xl font-black text-sm uppercase tracking-widest transition-all bg-amber-500 hover:bg-amber-600 text-black shadow-[0_10px_30px_rgba(245,158,11,0.3)]"
+          onClick={handleSave}
+        >
+          {isSaved ? (
+            <><CheckCircle2 className="w-5 h-5 mr-2" /> 已保存</>
+          ) : (
+            <><Save className="w-5 h-5 mr-2" /> 保存故事配置</>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
+
+type Tab = 'weather' | 'music' | 'story';
 
 export default function ServicesPage() {
   const { isConnected, ip, connectDevice, isConnecting } = useMusic();
+  const [activeTab, setActiveTab] = useState<Tab>('weather');
 
   if (!isConnected) {
     return (
@@ -191,29 +364,44 @@ export default function ServicesPage() {
           </p>
         </div>
 
-        {/* Tabs — future: music, stories */}
+        {/* Tabs */}
         <div className="flex gap-2">
-          <button className="px-5 py-2 rounded-full text-sm font-bold bg-sky-500/15 text-sky-400 border border-sky-500/30">
+          <button
+            onClick={() => setActiveTab('weather')}
+            className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${
+              activeTab === 'weather'
+                ? 'bg-sky-500/15 text-sky-400 border-sky-500/30'
+                : 'bg-neutral-900/40 text-neutral-400 border-neutral-800 hover:text-neutral-200'
+            }`}
+          >
             🌤 天气
           </button>
           <button
-            disabled
-            className="px-5 py-2 rounded-full text-sm font-bold bg-neutral-900/40 text-neutral-600 border border-neutral-800 cursor-not-allowed"
-            title="即将推出"
+            onClick={() => setActiveTab('music')}
+            className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${
+              activeTab === 'music'
+                ? 'bg-violet-500/15 text-violet-400 border-violet-500/30'
+                : 'bg-neutral-900/40 text-neutral-400 border-neutral-800 hover:text-neutral-200'
+            }`}
           >
-            🎵 音乐（即将推出）
+            🎵 音乐
           </button>
           <button
-            disabled
-            className="px-5 py-2 rounded-full text-sm font-bold bg-neutral-900/40 text-neutral-600 border border-neutral-800 cursor-not-allowed"
-            title="即将推出"
+            onClick={() => setActiveTab('story')}
+            className={`px-5 py-2 rounded-full text-sm font-bold border transition-all ${
+              activeTab === 'story'
+                ? 'bg-amber-500/15 text-amber-400 border-amber-500/30'
+                : 'bg-neutral-900/40 text-neutral-400 border-neutral-800 hover:text-neutral-200'
+            }`}
           >
-            📚 故事（即将推出）
+            📚 故事
           </button>
         </div>
 
-        {/* Weather Config */}
-        <WeatherConfigCard />
+        {/* Active Card */}
+        {activeTab === 'weather' && <WeatherConfigCard />}
+        {activeTab === 'music' && <MusicServiceCard />}
+        {activeTab === 'story' && <StoryServiceCard />}
       </div>
     </PageLayout>
   );

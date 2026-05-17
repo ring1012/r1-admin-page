@@ -63,6 +63,12 @@ interface MusicContextType {
   weatherConfig: any;
   queryWeatherConfig: () => void;
   saveWeatherConfig: (config: any) => void;
+  musicServiceConfig: any;
+  queryMusicServiceConfig: () => void;
+  saveMusicServiceConfig: (config: any) => void;
+  storyServiceConfig: any;
+  queryStoryServiceConfig: () => void;
+  saveStoryServiceConfig: (config: any) => void;
   eqData: any;
   queryEq: () => void;
   setEq: (data: any) => void;
@@ -78,6 +84,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [aiConfig, setAiConfig] = useState<any>(null);
   const [isAiEnabled, setIsAiEnabled] = useState(false);
   const [weatherConfig, setWeatherConfig] = useState<any>(null);
+  const [musicServiceConfig, setMusicServiceConfig] = useState<any>(null);
+  const [storyServiceConfig, setStoryServiceConfig] = useState<any>(null);
   const searchParams = useSearchParams();
   const ip = searchParams.get('ip');
   const wsRef = useRef<WebSocket | null>(null);
@@ -182,6 +190,24 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
             setWeatherConfig(parsed);
           } catch (e) {
             setWeatherConfig(data.data.config);
+          }
+        }
+
+        if (data.action === "music_service" && data.data) {
+          try {
+            const parsed = typeof data.data.config === 'string' ? JSON.parse(data.data.config) : data.data.config;
+            setMusicServiceConfig(parsed);
+          } catch (e) {
+            setMusicServiceConfig(data.data.config);
+          }
+        }
+
+        if (data.action === "story_service" && data.data) {
+          try {
+            const parsed = typeof data.data.config === 'string' ? JSON.parse(data.data.config) : data.data.config;
+            setStoryServiceConfig(parsed);
+          } catch (e) {
+            setStoryServiceConfig(data.data.config);
           }
         }
 
@@ -292,6 +318,24 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     });
   };
 
+  const queryMusicServiceConfig = () => sendWsCommand('music_service', { type: 'query' });
+
+  const saveMusicServiceConfig = (config: any) => {
+    sendWsCommand('music_service', {
+      type: 'save',
+      config: JSON.stringify(config)
+    });
+  };
+
+  const queryStoryServiceConfig = () => sendWsCommand('story_service', { type: 'query' });
+
+  const saveStoryServiceConfig = (config: any) => {
+    sendWsCommand('story_service', {
+      type: 'save',
+      config: JSON.stringify(config)
+    });
+  };
+
   const queryEq = () => sendWsCommand('eq', { type: 'query' });
   const setEq = (data: any) => {
     // Optimistic update
@@ -326,6 +370,12 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       weatherConfig,
       queryWeatherConfig,
       saveWeatherConfig,
+      musicServiceConfig,
+      queryMusicServiceConfig,
+      saveMusicServiceConfig,
+      storyServiceConfig,
+      queryStoryServiceConfig,
+      saveStoryServiceConfig,
       eqData,
       queryEq,
       setEq,

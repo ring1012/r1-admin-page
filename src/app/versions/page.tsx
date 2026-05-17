@@ -12,6 +12,23 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
+function formatVersion(timestamp: number | null): string {
+  if (!timestamp) return '---';
+  try {
+    const date = new Date(timestamp);
+    if (isNaN(date.getTime())) {
+      return String(timestamp);
+    }
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${month}月${day}日 ${hours}:${minutes}`;
+  } catch (e) {
+    return String(timestamp);
+  }
+}
+
 function VersionsPageContent() {
   const { isConnected, isConnecting, connectDevice } = useMusic();
   const searchParams = useSearchParams();
@@ -211,11 +228,11 @@ function VersionsPageContent() {
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800/50">
               <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">当前版本</p>
-              <p className="text-sm sm:text-xl font-mono text-neutral-200 truncate">{current || '---'}</p>
+              <p className="text-sm sm:text-xl font-mono text-neutral-200 truncate">{formatVersion(current)}</p>
             </div>
             <div className="p-4 rounded-2xl bg-neutral-950 border border-neutral-800/50">
               <p className="text-[10px] font-semibold text-neutral-500 uppercase tracking-wider mb-1">最新版本</p>
-              <p className="text-sm sm:text-xl font-mono text-neutral-200 truncate">{latest || '---'}</p>
+              <p className="text-sm sm:text-xl font-mono text-neutral-200 truncate">{formatVersion(latest)}</p>
             </div>
           </div>
 
@@ -247,7 +264,7 @@ function VersionsPageContent() {
               <DialogHeader>
                 <DialogTitle>确认升级 {title}?</DialogTitle>
                 <DialogDescription className="text-neutral-400">
-                  您确定要升级到版本 {latest} 吗？
+                  您确定要升级到版本 {formatVersion(latest)} 吗？
                   <br /><br />
                   <span className="text-rose-400 font-semibold">警告：升级过程中音箱将会自动重启，请确保升级期间不要断电。</span>
                 </DialogDescription>
