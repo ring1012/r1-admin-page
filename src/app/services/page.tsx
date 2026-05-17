@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Cloud, Music, BookOpen, Save, CheckCircle2, AlertCircle, Info, Settings2 } from 'lucide-react';
+import { Cloud, Music, BookOpen, Save, CheckCircle2, AlertCircle, Info, Settings2, Loader2 } from 'lucide-react';
 import { useMusic } from '@/components/MusicContext';
 import { ConnectionMask } from '@/components/ConnectionMask';
 import { PageLayout } from '@/components/layout';
@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import Link from 'next/link';
 
 // ─── Weather Config Section ────────────────────────────────────────────────────
 
@@ -332,8 +333,14 @@ function StoryServiceCard() {
 type Tab = 'weather' | 'music' | 'story';
 
 export default function ServicesPage() {
-  const { isConnected, ip, connectDevice, isConnecting } = useMusic();
+  const { isConnected, ip, isAiEnabled, aiConfig, queryAiConfig, connectDevice, isConnecting } = useMusic();
   const [activeTab, setActiveTab] = useState<Tab>('weather');
+
+  useEffect(() => {
+    if (isConnected) {
+      queryAiConfig();
+    }
+  }, [isConnected]);
 
   if (!isConnected) {
     return (
@@ -345,6 +352,60 @@ export default function ServicesPage() {
           onConnect={connectDevice}
           title="服务配置 - 设备未连接"
         />
+      </PageLayout>
+    );
+  }
+
+  // Show a loading screen until the AI configuration status is received
+  if (aiConfig === null) {
+    return (
+      <PageLayout>
+        <div className="min-h-[80vh] flex flex-col items-center justify-center gap-4 text-neutral-500 bg-neutral-950">
+          <Loader2 className="w-10 h-10 animate-spin text-blue-500" />
+          <p className="font-medium animate-pulse">正在获取 AI 配置状态...</p>
+        </div>
+      </PageLayout>
+    );
+  }
+
+  // If AI is not enabled, show a premium notice page and block config
+  if (!isAiEnabled) {
+    const aiPageHref = ip ? `/ai?ip=${ip}` : '/ai';
+    return (
+      <PageLayout>
+        <div className="min-h-[80vh] flex items-center justify-center px-4 relative overflow-hidden bg-neutral-950">
+          {/* Background gradients/glows */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div className="absolute top-1/4 left-1/4 w-[300px] h-[300px] bg-blue-500/10 rounded-full blur-[100px]" />
+            <div className="absolute bottom-1/4 right-1/4 w-[300px] h-[300px] bg-indigo-500/10 rounded-full blur-[100px]" />
+          </div>
+
+          <Card className="max-w-md w-full bg-neutral-900/60 border-neutral-800/80 backdrop-blur-3xl rounded-[40px] p-8 text-center space-y-6 relative z-10 shadow-2xl">
+            <CardHeader className="p-0 pb-2 flex flex-col items-center">
+              <div className="w-20 h-20 rounded-3xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-4 shadow-[0_0_30px_rgba(59,130,246,0.15)] border border-blue-500/20 animate-bounce duration-1000">
+                <Settings2 className="w-10 h-10 animate-spin-slow" />
+              </div>
+              <CardTitle className="text-3xl font-black text-white tracking-tight">AI 功能未开启</CardTitle>
+              <CardDescription className="text-neutral-400 text-sm mt-2 leading-relaxed">
+                当前音箱未启用 AI 引擎。第三方天气、音乐与故事服务配置完全依赖于 AI 的意图识别与工具调用能力。
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0 text-neutral-500 text-xs bg-neutral-950/40 border border-neutral-800/50 rounded-3xl p-5 leading-loose">
+              <div className="flex items-center justify-center gap-2 text-amber-500 font-bold mb-2">
+                <AlertCircle className="w-4 h-4" />
+                <span>服务配置被锁定</span>
+              </div>
+              请先前往 <span className="text-neutral-300 font-semibold">AI 配置</span> 页面开启 AI 服务，开启后此处相关的第三方服务配置项将自动解锁。
+            </CardContent>
+            <div className="pt-2">
+              <Link href={aiPageHref}>
+                <Button className="w-full h-14 rounded-3xl font-black text-sm uppercase tracking-widest bg-blue-600 hover:bg-blue-500 text-white shadow-[0_10px_30px_rgba(59,130,246,0.3)] transition-all hover:scale-[1.02] active:scale-[0.98]">
+                  前往 AI 配置页面启用
+                </Button>
+              </Link>
+            </div>
+          </Card>
+        </div>
       </PageLayout>
     );
   }
