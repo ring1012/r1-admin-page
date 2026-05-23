@@ -24,6 +24,7 @@ const HeaderContent = () => {
     { href: '/versions', label: '版本管理' },
     { href: '/ai', label: 'AI配置' },
     { href: '/services', label: '服务配置' },
+    { href: '/config-wifi', label: '配网工具' },
   ]
 
   const getFullHref = (href: string) => {
