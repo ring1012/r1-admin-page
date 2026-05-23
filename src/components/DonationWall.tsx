@@ -88,7 +88,7 @@ export default function DonationWall() {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, [donations]);
 
-  const totalAmount = donations.reduce((sum, item) => sum + item.amount, 0);
+  const totalAmount = donations.filter(d => d.platform !== "闲鱼").reduce((sum, item) => sum + item.amount, 0);
   const totalCount = donations.length;
 
   const getGradient = (name: string) => {
@@ -136,7 +136,7 @@ export default function DonationWall() {
               <div className="grid grid-cols-2 sm:grid-cols-2 gap-4 max-w-lg mx-auto bg-neutral-950/50 p-4 border border-neutral-800/80 rounded-2xl">
                 <div className="text-center border-r border-neutral-800/50">
                   <div className="flex items-center justify-center gap-1.5 text-xs font-semibold text-neutral-500 uppercase tracking-wider mb-1">
-                    <Coins className="w-3.5 h-3.5 text-amber-400" /> 累计金额
+                    <Coins className="w-3.5 h-3.5 text-amber-400" /> 捐赠累计（非闲鱼）
                   </div>
                   <div className="text-xl sm:text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-yellow-300 font-mono tabular-nums">
                     ¥{totalAmount.toFixed(2)}
