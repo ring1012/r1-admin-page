@@ -26,7 +26,7 @@ interface Playlist {
 }
 
 export default function MusicPage() {
-  const { isConnected, ip, searchMusic, searchResult, play, serial: wsSerial, isConnecting, connectDevice, playList } = useMusic();
+  const { isConnected, ip, searchMusic, searchResult, play, serial: wsSerial, isConnecting, connectDevice, playList, protocolError, permissionRequired, grantPermission } = useMusic();
   const [keyword, setKeyword] = useState('');
   const [localSerial, setLocalSerial] = useState('default-serial');
   const [sourceType, setSourceType] = useState<'default' | 'custom'>('default');
@@ -281,6 +281,9 @@ export default function MusicPage() {
           ip={ip || ''} 
           onConnect={connectDevice}
           title="音箱设备未连接"
+          protocolError={protocolError}
+          permissionRequired={permissionRequired}
+          onGrantPermission={grantPermission}
         />
       </PageLayout>
     );

@@ -333,7 +333,7 @@ function StoryServiceCard() {
 type Tab = 'weather' | 'music' | 'story';
 
 export default function ServicesPage() {
-  const { isConnected, ip, isAiEnabled, aiConfig, queryAiConfig, connectDevice, isConnecting } = useMusic();
+  const { isConnected, ip, isAiEnabled, aiConfig, queryAiConfig, connectDevice, isConnecting, protocolError, permissionRequired, grantPermission } = useMusic();
   const [activeTab, setActiveTab] = useState<Tab>('weather');
 
   useEffect(() => {
@@ -351,6 +351,9 @@ export default function ServicesPage() {
           ip={ip}
           onConnect={connectDevice}
           title="服务配置 - 设备未连接"
+          protocolError={protocolError}
+          permissionRequired={permissionRequired}
+          onGrantPermission={grantPermission}
         />
       </PageLayout>
     );

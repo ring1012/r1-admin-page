@@ -49,6 +49,7 @@ interface MusicContextType {
   prev: () => Promise<void>;
   setVolume: (volume: number) => Promise<void>;
   setMode: (mode: number) => Promise<void>;
+  seek: (positionMs: number) => Promise<void>;
   aiConfig: any;
   isAiEnabled: boolean;
   queryAiConfig: () => void;
@@ -56,6 +57,8 @@ interface MusicContextType {
   connectDevice: () => void;
   isConnecting: boolean;
   protocolError: string | null;
+  permissionRequired: boolean;
+  grantPermission: () => void;
   searchMusic: (keyword: string) => void;
   searchResult: any;
   serial: string | null;
@@ -91,6 +94,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const wsRef = useRef<WebSocket | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [protocolError, setProtocolError] = useState<string | null>(null);
+  const [permissionRequired, setPermissionRequired] = useState(false);
   const [searchResult, setSearchResult] = useState<any>(null);
   const [serial, setSerialState] = useState<string | null>(null);
   const [eqData, setEqData] = useState<any>(null);
@@ -240,10 +244,23 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     };
   };
 
+  const grantPermission = () => {
+    setPermissionRequired(false);
+    setProtocolError(null);
+    sessionStorage.setItem('r1_ws_permission', 'granted');
+    connectDevice();
+  };
+
   // Auto-connect logic on IP initialization
   useEffect(() => {
     if (ip) {
-      connectDevice();
+      const alreadyGranted = sessionStorage.getItem('r1_ws_permission') === 'granted';
+      if (alreadyGranted) {
+        connectDevice();
+      } else {
+        setPermissionRequired(true);
+        setProtocolError('需要您确认允许网站访问本地网络设备，才能连接 R1 音箱');
+      }
     }
   }, [ip]);
 
@@ -265,6 +282,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
     sendWsCommand('volume', { volume });
   };
   const setMode = async (mode: number) => sendWsCommand('mode', { mode });
+  const seek = async (positionMs: number) => sendWsCommand('seek', { position: positionMs });
 
   const queryAiConfig = () => sendWsCommand('ai', { type: 'query' });
 
@@ -356,6 +374,7 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       prev,
       setVolume,
       setMode,
+      seek,
       aiConfig,
       isAiEnabled,
       queryAiConfig,
@@ -363,6 +382,8 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       connectDevice,
       isConnecting,
       protocolError,
+      permissionRequired,
+      grantPermission,
       searchMusic,
       searchResult,
       serial,

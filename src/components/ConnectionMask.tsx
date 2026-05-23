@@ -10,6 +10,9 @@ interface ConnectionMaskProps {
   ip: string | null;
   onConnect: () => void;
   title?: string;
+  protocolError?: string | null;
+  permissionRequired?: boolean;
+  onGrantPermission?: () => void;
 }
 
 export function ConnectionMask({ 
@@ -17,7 +20,10 @@ export function ConnectionMask({
   isConnecting, 
   ip, 
   onConnect,
-  title = "设备未连接"
+  title = "设备未连接",
+  protocolError,
+  permissionRequired,
+  onGrantPermission,
 }: ConnectionMaskProps) {
   const [browserInfo, setBrowserInfo] = useState<{
     name: string;
@@ -83,7 +89,7 @@ export function ConnectionMask({
   // Auto-reconnect timer
   useEffect(() => {
     let timer: NodeJS.Timeout | null = null;
-    if (!isConnected && !isConnecting && ip) {
+    if (!isConnected && !isConnecting && ip && !permissionRequired) {
       timer = setInterval(() => {
         onConnect();
       }, 3000);
@@ -91,7 +97,7 @@ export function ConnectionMask({
     return () => {
       if (timer) clearInterval(timer);
     };
-  }, [isConnected, isConnecting, ip, onConnect]);
+  }, [isConnected, isConnecting, ip, onConnect, permissionRequired]);
 
   if (isConnected) return null;
 
@@ -120,6 +126,50 @@ export function ConnectionMask({
         </div>
       </div>
       
+      {protocolError && (
+        <div className="w-full max-w-2xl mb-8 bg-red-500/10 border-2 border-red-500/50 rounded-[24px] p-6 shadow-[0_0_40px_rgba(239,68,68,0.25)]">
+          <div className="flex items-start gap-4">
+            <div className="w-12 h-12 rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+              <ShieldAlert className="w-6 h-6 text-red-400" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <h3 className="text-xl font-black text-red-400 mb-2">需要本地网络权限</h3>
+              <p className="text-sm text-red-300/80 leading-relaxed mb-4">
+                {protocolError}
+              </p>
+              <div className="bg-red-950/50 border border-red-500/20 rounded-2xl p-4 mb-4 space-y-2">
+                <p className="text-xs text-red-300/70 font-medium">请确保：</p>
+                <ol className="text-xs text-red-300/60 space-y-1.5 list-decimal list-inside">
+                  <li>您已连接 R1 音箱的 <span className="text-red-200 font-bold">@PHICOMM_</span> 热点，或音箱与电脑处于同一局域网</li>
+                  <li>浏览器已允许此网站访问本地网络设备（浏览器地址栏左侧锁图标 → 网站设置 → 本地网络访问 → 允许）</li>
+                </ol>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  onClick={onGrantPermission}
+                  disabled={isConnecting}
+                  className="flex-1 h-12 bg-red-500 hover:bg-red-600 disabled:bg-red-800 disabled:text-red-400 text-white font-black rounded-2xl transition-all flex items-center justify-center gap-2 text-sm"
+                >
+                  {isConnecting ? (
+                    <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  ) : (
+                    <Play className="w-4 h-4 fill-current" />
+                  )}
+                  {isConnecting ? "正在连接..." : "我已确认，开始连接"}
+                </button>
+                <button
+                  onClick={onConnect}
+                  disabled={isConnecting}
+                  className="h-12 px-6 bg-red-950/50 border border-red-500/30 hover:bg-red-950 text-red-400 font-bold rounded-2xl transition-all text-xs"
+                >
+                  跳过，直接重试
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <h2 className="text-4xl font-black text-white mb-4 tracking-tighter">{title}</h2>
       <p className="text-neutral-400 max-w-lg mb-8 text-lg leading-relaxed">
         无法连接到 R1 音箱。现代浏览器出于安全考虑，限制了网页对本地网络设备的访问权限。
@@ -228,7 +278,7 @@ export function ConnectionMask({
       </div>
 
       {/* Auto-reconnect status */}
-      {!isConnected && !isConnecting && (
+      {!isConnected && !isConnecting && !permissionRequired && (
         <div className="mb-4 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500/60 animate-pulse">
            Auto-reconnect active: Retrying in 3s...
         </div>

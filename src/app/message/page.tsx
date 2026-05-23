@@ -27,7 +27,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 function MessagePageContent() {
-  const { isConnected, isConnecting, connectDevice } = useMusic();
+  const { isConnected, isConnecting, connectDevice, protocolError, permissionRequired, grantPermission } = useMusic();
   const searchParams = useSearchParams();
   const ip = searchParams.get("ip");
 
@@ -162,6 +162,9 @@ function MessagePageContent() {
           ip={ip} 
           onConnect={connectDevice}
           title="消息控制 - 设备未连接"
+          protocolError={protocolError}
+          permissionRequired={permissionRequired}
+          onGrantPermission={grantPermission}
         />
       </PageLayout>
     );

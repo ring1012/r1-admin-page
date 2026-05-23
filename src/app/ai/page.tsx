@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import Link from 'next/link';
 
 export default function AiConfigPage() {
-  const { isConnected, ip, aiConfig, isAiEnabled, queryAiConfig, saveAiConfig, connectDevice, isConnecting } = useMusic();
+  const { isConnected, ip, aiConfig, isAiEnabled, queryAiConfig, saveAiConfig, connectDevice, isConnecting, protocolError, permissionRequired, grantPermission } = useMusic();
 
   const [formData, setFormData] = useState({
     choice: 'OpenAi',
@@ -105,6 +105,9 @@ export default function AiConfigPage() {
           ip={ip} 
           onConnect={connectDevice}
           title="AI 配置 - 设备未连接"
+          protocolError={protocolError}
+          permissionRequired={permissionRequired}
+          onGrantPermission={grantPermission}
         />
       </PageLayout>
     );

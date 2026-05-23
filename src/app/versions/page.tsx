@@ -30,7 +30,7 @@ function formatVersion(timestamp: number | null): string {
 }
 
 function VersionsPageContent() {
-  const { isConnected, isConnecting, connectDevice } = useMusic();
+  const { isConnected, isConnecting, connectDevice, protocolError, permissionRequired, grantPermission } = useMusic();
   const searchParams = useSearchParams();
   const ip = searchParams.get("ip");
 
@@ -195,6 +195,9 @@ function VersionsPageContent() {
           ip={ip} 
           onConnect={connectDevice}
           title="版本管理 - 设备未连接"
+          protocolError={protocolError}
+          permissionRequired={permissionRequired}
+          onGrantPermission={grantPermission}
         />
       </PageLayout>
     );

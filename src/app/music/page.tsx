@@ -20,10 +20,13 @@ export default function MusicDetailsPage() {
     prev,
     setVolume,
     setMode,
+    seek,
     isConnected,
     connectDevice,
     isConnecting,
     protocolError,
+    permissionRequired,
+    grantPermission,
     ip
   } = useMusic();
   const searchParams = useSearchParams();
@@ -114,6 +117,9 @@ export default function MusicDetailsPage() {
           ip={ip} 
           onConnect={connectDevice}
           title="音箱设备未连接"
+          protocolError={protocolError}
+          permissionRequired={permissionRequired}
+          onGrantPermission={grantPermission}
         />
       </PageLayout>
     );
@@ -121,6 +127,13 @@ export default function MusicDetailsPage() {
 
   const isPlaying = position?.status === 1 || position?.status === 3;
   const progress = position ? (position.play_time / position.total_time) * 100 : 0;
+
+  const handleSeek = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!position?.total_time) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ratio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    seek(Math.round(ratio * position.total_time));
+  };
 
   const formatTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -335,7 +348,10 @@ export default function MusicDetailsPage() {
 
               {/* Progress Slider */}
               <div className="space-y-4">
-                <div className="relative h-2 w-full bg-neutral-800 rounded-full overflow-hidden group cursor-pointer">
+                <div
+                  className="relative h-2 w-full bg-neutral-800 rounded-full overflow-hidden group cursor-pointer"
+                  onMouseDown={handleSeek}
+                >
                   <div
                     className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-300"
                     style={{ width: `${progress}%` }}

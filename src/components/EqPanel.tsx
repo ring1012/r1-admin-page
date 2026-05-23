@@ -7,12 +7,24 @@ import { useMusic } from './MusicContext';
 export function EqPanel() {
   const { eqData, queryEq, setEq, isConnected } = useMusic();
   const [isOpen, setIsOpen] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
   useEffect(() => {
     if (isConnected) {
       queryEq();
     }
   }, [isConnected]);
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && !localStorage.getItem("r1_eq_hint_done")) {
+      setShowHint(true);
+      const timer = setTimeout(() => {
+        setShowHint(false);
+        localStorage.setItem("r1_eq_hint_done", "1");
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   if (!isConnected) return null;
 
@@ -78,9 +90,22 @@ export function EqPanel() {
   if (!isOpen) {
     return (
       <div className="fixed bottom-4 right-4 sm:right-8 z-50">
+        {showHint && (
+          <div className="absolute bottom-full right-0 mb-3 animate-in fade-in slide-in-from-bottom-2 duration-500 pointer-events-none">
+            <div className="bg-purple-600 text-white text-xs font-bold px-4 py-2 rounded-2xl shadow-2xl whitespace-nowrap flex items-center gap-1.5">
+              <SlidersHorizontal className="w-3.5 h-3.5 animate-pulse" />
+              点击此处调节音效
+            </div>
+            <div className="absolute bottom-[-6px] right-6 w-3 h-3 bg-purple-600 rotate-45" />
+          </div>
+        )}
         <button
-          onClick={() => setIsOpen(true)}
-          className="w-12 h-12 rounded-full bg-neutral-900/90 backdrop-blur-2xl border border-neutral-800 text-white shadow-2xl flex items-center justify-center hover:bg-neutral-800 transition-all ring-1 ring-white/5 hover:scale-105"
+          onClick={() => {
+            setIsOpen(true);
+            setShowHint(false);
+            if (typeof window !== "undefined") localStorage.setItem("r1_eq_hint_done", "1");
+          }}
+          className={`w-14 h-14 rounded-full bg-neutral-900/90 backdrop-blur-2xl border border-neutral-800 text-white shadow-2xl flex items-center justify-center hover:bg-neutral-800 hover:scale-105 transition-all ring-1 ${showHint ? 'ring-purple-500/50 scale-110 animate-pulse' : 'ring-white/5'}`}
           title="音效控制"
         >
           <SlidersHorizontal className="w-5 h-5 text-purple-400" />
