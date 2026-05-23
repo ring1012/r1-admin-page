@@ -78,34 +78,6 @@ function HomeContent() {
         </Link>
       </div>
 
-      {/* Wifi Config Card */}
-      <div className="pt-4">
-        <Link href={getFullHref("/config-wifi")} className="group block">
-          <div className="bg-neutral-900/40 border border-neutral-800 rounded-3xl p-8 hover:bg-neutral-800/40 hover:border-cyan-500/50 transition-all duration-300 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-6 group-hover:shadow-[0_0_50px_rgba(6,182,212,0.12)]">
-            {/* Left side info */}
-            <div className="relative z-10 space-y-4 max-w-xl text-left">
-              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 flex items-center justify-center text-cyan-400">
-                <Wifi className="w-6 h-6 animate-pulse" />
-              </div>
-              <h2 className="text-3xl font-extrabold text-white group-hover:text-cyan-300 transition-colors">
-                R1 免 APP 配网工具
-              </h2>
-              <p className="text-neutral-400 leading-relaxed text-sm">
-                新买的或已重置的 R1 音箱无法连接网络？在这里可以直接输入无线名称与密码，直接将配置信息推入音箱，无需繁琐的官方 APP 步骤，极速配网联网！
-              </p>
-            </div>
-            {/* Right side trigger arrow */}
-            <div className="flex items-center gap-2 text-cyan-400 font-bold group-hover:gap-3 transition-all relative z-10 shrink-0 text-sm bg-cyan-500/5 border border-cyan-500/10 px-5 py-2.5 rounded-full hover:bg-cyan-500/10 shadow-md">
-              即刻配网 <ArrowRight className="w-4 h-4" />
-            </div>
-            {/* Decorative background visual */}
-            <div className="absolute -bottom-12 -right-12 p-8 transform rotate-12 transition-transform opacity-5 group-hover:opacity-10 pointer-events-none">
-              <Wifi className="w-56 h-56 text-cyan-400" />
-            </div>
-          </div>
-        </Link>
-      </div>
-
       {/* Support Section */}
       <div className="pt-4">
         <SupportSection />
