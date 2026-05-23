@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { Settings, Play, ShieldAlert, Globe, Monitor, Smartphone, ExternalLink, AlertTriangle } from 'lucide-react';
+import { Settings, Play, ShieldAlert, Globe, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
 
 interface ConnectionMaskProps {
@@ -41,12 +41,6 @@ export function ConnectionMask({
     isMobile: false
   });
 
-  const [currentUrlInfo, setCurrentUrlInfo] = useState({
-    protocol: '',
-    host: '',
-    isRecommended: false
-  });
-
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
@@ -71,19 +65,6 @@ export function ConnectionMask({
       isMobile,
       is360: !!is360
     });
-
-    const protocol = window.location.protocol;
-    const host = window.location.host;
-    
-    // Recommended settings
-    const recommendedHost = 'r1.huan.dedyn.io';
-    const recommendedHttpHost = 'r1-web.huan.dedyn.io:8080';
-    
-    const isRecommended = isMobile 
-      ? (protocol === 'http:' && host === recommendedHttpHost)
-      : (protocol === 'https:' && host === recommendedHost);
-
-    setCurrentUrlInfo({ protocol, host, isRecommended });
   }, []);
 
   // Auto-reconnect timer
@@ -102,20 +83,12 @@ export function ConnectionMask({
   if (isConnected) return null;
 
   const getSettingsLink = () => {
-    const site = "https://r1.huan.dedyn.io";
+    const site = window.location.origin;
     const encodedSite = encodeURIComponent(site);
     if (browserInfo.isChrome || browserInfo.is360) return `chrome://settings/content/siteDetails?site=${encodedSite}`;
     if (browserInfo.isEdge) return `edge://settings/content/siteDetails?site=${encodedSite}`;
     return null;
   };
-
-  const recommendedLink = browserInfo.isMobile 
-    ? `http://r1-web.huan.dedyn.io:8080${window.location.pathname}${window.location.search}`
-    : `https://r1.huan.dedyn.io${window.location.pathname}${window.location.search}`;
-
-  const altLink = !browserInfo.isMobile
-    ? `http://r1-web.huan.dedyn.io:8080${window.location.pathname}${window.location.search}`
-    : `https://r1.huan.dedyn.io${window.location.pathname}${window.location.search}`;
 
   return (
     <div className="min-h-[85vh] flex flex-col items-center justify-center text-center p-6 bg-neutral-950">
@@ -180,7 +153,7 @@ export function ConnectionMask({
           如果长时间无法连接，请尝试 <span className="text-amber-300 font-black border-b-2 border-amber-500/50 pb-0.5">手动重启音箱</span>
         </span>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl w-full mb-12">
+      <div className="max-w-2xl w-full mb-12">
         {/* Method 1: Browser Settings */}
         <div className="bg-neutral-900/50 border border-neutral-800 rounded-[32px] p-8 text-left backdrop-blur-xl flex flex-col">
           <div className="flex items-center gap-3 mb-6">
@@ -224,56 +197,6 @@ export function ConnectionMask({
             )}
           </div>
         </div>
-
-        {/* Method 2: Recommended URL */}
-        <div className="bg-neutral-900/50 border border-neutral-800 rounded-[32px] p-8 text-left backdrop-blur-xl flex flex-col">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-10 h-10 rounded-2xl bg-purple-500/10 flex items-center justify-center text-purple-400">
-              {browserInfo.isMobile ? <Smartphone className="w-5 h-5" /> : <Monitor className="w-5 h-5" />}
-            </div>
-            <div>
-              <h3 className="text-white font-bold">切换访问域名</h3>
-              <p className="text-[10px] text-neutral-500 uppercase tracking-widest font-black">Alternative Links</p>
-            </div>
-          </div>
-
-          <div className="flex-1 space-y-4">
-            <p className="text-sm text-neutral-400 leading-relaxed">
-              不同设备对网络协议的要求不同，推荐尝试以下专为 {browserInfo.isMobile ? '移动端' : '电脑端'} 优化的链接：
-            </p>
-            
-            <div className="space-y-3">
-              <a 
-                href={recommendedLink}
-                className={`w-full flex items-center justify-between p-4 rounded-2xl border transition-all ${currentUrlInfo.isRecommended ? 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400' : 'bg-neutral-950 border-neutral-800 hover:border-neutral-700 text-white'}`}
-              >
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">推荐链接 (Recommended)</span>
-                  <span className="text-sm font-bold font-mono">{recommendedLink.split('?')[0].replace('https://','').replace('http://','')}</span>
-                </div>
-                {currentUrlInfo.isRecommended ? <div className="text-[8px] bg-emerald-500 text-white px-2 py-1 rounded-md font-black">正在使用</div> : <ExternalLink className="w-4 h-4 opacity-40" />}
-              </a>
-
-              <a 
-                href={altLink}
-                className="w-full flex items-center justify-between p-4 rounded-2xl bg-neutral-950 border border-neutral-800 hover:border-neutral-700 text-white transition-all transition-all"
-              >
-                <div className="flex flex-col gap-0.5">
-                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60">备选链接 (Alternative)</span>
-                  <span className="text-sm font-bold font-mono">{altLink.split('?')[0].replace('https://','').replace('http://','')}</span>
-                </div>
-                <ExternalLink className="w-4 h-4 opacity-40" />
-              </a>
-            </div>
-            
-            {!currentUrlInfo.isRecommended && (
-              <div className="flex items-start gap-2 text-[10px] text-amber-500/80 bg-amber-500/5 p-3 rounded-xl border border-amber-500/10">
-                <AlertTriangle className="w-3 h-3 shrink-0" />
-                <span>检测到您当前使用的链接可能在当前设备上存在兼容性限制。</span>
-              </div>
-            )}
-          </div>
-        </div>
       </div>
 
       {/* Auto-reconnect status */}
@@ -300,10 +223,6 @@ export function ConnectionMask({
         >
           返回主页
         </Link>
-      </div>
-      
-      <div className="mt-12 text-neutral-600 text-[10px] font-medium tracking-[0.2em] uppercase">
-        Target IP: <span className="text-neutral-500">{ip || 'Unknown'}</span> | Device: <span className="text-neutral-500">{browserInfo.isMobile ? 'Mobile' : 'Desktop'}</span>
       </div>
     </div>
   );

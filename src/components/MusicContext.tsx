@@ -2,15 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useRef } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Globe } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+
 
 export interface PlayPositionInfo {
   music_id: string;
@@ -98,40 +90,6 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const [searchResult, setSearchResult] = useState<any>(null);
   const [serial, setSerialState] = useState<string | null>(null);
   const [eqData, setEqData] = useState<any>(null);
-
-  const [recommendation, setRecommendation] = useState<{ url: string; target: string } | null>(null);
-
-  // Connection compatibility detection
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    
-    // Skip recommendation if user already dismissed it in this session
-    if (sessionStorage.getItem('r1_recommendation_dismissed')) return;
-
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    if (isLocal) return;
-
-    const ua = typeof navigator !== 'undefined' ? navigator.userAgent : '';
-    const isMobile = ua ? /iPhone|iPad|iPod|Android/i.test(ua) : false;
-    const targetHost = isMobile ? 'r1-web.huan.dedyn.io:8080' : 'r1.huan.dedyn.io';
-    const targetProtocol = isMobile ? 'http:' : 'https:';
-    
-    if (window.location.host !== targetHost || window.location.protocol !== targetProtocol) {
-      const url = `${targetProtocol}//${targetHost}${window.location.pathname}${window.location.search}`;
-      setRecommendation({ url, target: isMobile ? '移动端' : '电脑端' });
-    }
-  }, []);
-
-  const handleAcceptRecommendation = () => {
-    if (recommendation) {
-      window.location.replace(recommendation.url);
-    }
-  };
-
-  const handleDismissRecommendation = () => {
-    setRecommendation(null);
-    sessionStorage.setItem('r1_recommendation_dismissed', 'true');
-  };
 
   const connectDevice = () => {
     if (!ip) return;
@@ -402,42 +360,6 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
       setEq,
     }}>
       {children}
-      
-      {/* Recommendation Dialog */}
-      {recommendation && (
-        <Dialog open={!!recommendation} onOpenChange={(open) => !open && handleDismissRecommendation()}>
-          <DialogContent className="bg-neutral-900 border-neutral-800 text-white rounded-[32px] max-w-sm sm:max-w-md">
-            <DialogHeader className="space-y-4">
-              <div className="w-16 h-16 rounded-3xl bg-blue-500/10 flex items-center justify-center text-blue-400 mx-auto mb-2">
-                <Globe className="w-8 h-8" />
-              </div>
-              <DialogTitle className="text-2xl font-black text-center tracking-tighter">
-                检测到访问环境优化建议
-              </DialogTitle>
-              <DialogDescription className="text-neutral-400 text-center text-base leading-relaxed">
-                检测到您当前正在使用 <span className="text-white font-bold">{recommendation.target}</span> 访问，为了获得更稳定的连接体验，建议切换到以下地址：
-                <div className="mt-4 p-3 bg-neutral-950 border border-neutral-800 rounded-2xl font-mono text-xs text-blue-400 break-all">
-                  {recommendation.url}
-                </div>
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="flex flex-col sm:flex-row gap-3 pt-4 sm:pt-6">
-              <button 
-                onClick={handleDismissRecommendation}
-                className="flex-1 h-14 rounded-2xl border border-neutral-800 text-neutral-400 font-bold hover:bg-neutral-800 transition-all"
-              >
-                留在当前页
-              </button>
-              <button 
-                onClick={handleAcceptRecommendation}
-                className="flex-[2] h-14 rounded-2xl bg-white text-black font-black uppercase tracking-widest hover:bg-neutral-200 transition-all shadow-lg"
-              >
-                立即跳转
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
     </MusicContext.Provider>
   );
 }
