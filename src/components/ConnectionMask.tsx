@@ -140,7 +140,6 @@ export function ConnectionMask({
               <div className="bg-red-950/50 border border-red-500/20 rounded-2xl p-4 mb-4 space-y-2">
                 <p className="text-xs text-red-300/70 font-medium">请确保：</p>
                 <ol className="text-xs text-red-300/60 space-y-1.5 list-decimal list-inside">
-                  <li>您已连接 R1 音箱的 <span className="text-red-200 font-bold">@PHICOMM_</span> 热点，或音箱与电脑处于同一局域网</li>
                   <li>浏览器已允许此网站访问本地网络设备（浏览器地址栏左侧锁图标 → 网站设置 → 本地网络访问 → 允许）</li>
                 </ol>
               </div>
