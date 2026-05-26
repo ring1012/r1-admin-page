@@ -48,6 +48,26 @@ export default function MusicDetailsPage() {
     }
   };
   
+  const [isMobile] = useState(() => typeof navigator !== 'undefined' && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
+
+  // Intercept hardware volume buttons on mobile to control speaker instead
+  useEffect(() => {
+    if (!isMobile) return;
+
+    const handleVolumeKey = (e: KeyboardEvent) => {
+      if (e.key === 'VolumeUp') {
+        e.preventDefault();
+        setVolume(Math.min(15, volume + 1));
+      } else if (e.key === 'VolumeDown') {
+        e.preventDefault();
+        setVolume(Math.max(0, volume - 1));
+      }
+    };
+
+    window.addEventListener('keydown', handleVolumeKey);
+    return () => window.removeEventListener('keydown', handleVolumeKey);
+  }, [isMobile, volume, setVolume]);
+
   const currentSong = states?.playList?.[states?.playIndex] || null;
   
   // Extract params from currentSong.url or page URL

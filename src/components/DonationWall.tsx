@@ -19,6 +19,7 @@ interface DanmakuItem {
   top: number;
   duration: number;
   colorIdx: number;
+  delay: number;
 }
 
 const GRADIENTS = [
@@ -68,14 +69,16 @@ export default function DonationWall() {
     const spawn = () => {
       const donation = donations[idxRef.current % donations.length];
       idxRef.current++;
+      const dur = 10 + Math.random() * 8;
       const item: DanmakuItem = {
         id: idRef.current++,
         name: donation.name,
         amount: donation.amount,
         platform: donation.platform,
         top: 8 + Math.random() * 72,
-        duration: 10 + Math.random() * 8,
+        duration: dur,
         colorIdx: [...donation.name].reduce((s, c) => s + c.charCodeAt(0), 0) % GRADIENTS.length,
+        delay: -(dur * Math.random() * 0.8),
       };
       setDanmakuItems(prev => [...prev.slice(-35), item]);
     };
@@ -179,6 +182,7 @@ export default function DonationWall() {
                     style={{
                       top: `${item.top}%`,
                       animationDuration: `${item.duration}s`,
+                      animationDelay: `${item.delay}s`,
                     }}
                   >
                     <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${GRADIENTS[item.colorIdx]} flex items-center justify-center text-white font-bold text-[8px] shrink-0`}>

@@ -22,7 +22,9 @@ export default function AiConfigPage() {
     systemPrompt: '你是一个智能音箱',
     model: 'Qwen/Qwen3-8B',
     endpoint: 'https://api-inference.modelscope.cn/v1',
-    extraBody: '{"enable_thinking":false}'
+    extraBody: '{"enable_thinking":false}',
+    aiType: '0',
+    cdn: ''
   });
 
   const [enabled, setEnabled] = useState(false);
@@ -39,8 +41,7 @@ export default function AiConfigPage() {
 
   useEffect(() => {
     if (aiConfig) {
-      // Strictly pick only the keys we expect in formData to avoid garbage data (like indexed strings)
-      const validKeys = ['choice', 'key', 'systemPrompt', 'model', 'endpoint', 'extraBody'];
+      const validKeys = ['choice', 'key', 'systemPrompt', 'model', 'endpoint', 'extraBody', 'cdn'];
       const filteredConfig: any = {};
 
       validKeys.forEach(key => {
@@ -48,6 +49,9 @@ export default function AiConfigPage() {
           filteredConfig[key] = aiConfig[key];
         }
       });
+
+      const aiType = aiConfig.aiType !== undefined ? String(aiConfig.aiType) : '0';
+      filteredConfig.aiType = aiType;
 
       setFormData(prev => ({
         ...prev,
@@ -84,12 +88,12 @@ export default function AiConfigPage() {
   };
 
   const handleSave = () => {
-    // Strictly pick only valid formatting to avoid persisting junk
-    const validKeys = ['choice', 'key', 'systemPrompt', 'model', 'endpoint', 'extraBody'];
+    const validKeys = ['choice', 'key', 'systemPrompt', 'model', 'endpoint', 'extraBody', 'cdn'];
     const filteredConfig: any = {};
     validKeys.forEach(key => {
       filteredConfig[key] = (formData as any)[key];
     });
+    filteredConfig.aiType = formData.aiType === '0' ? 0 : 1;
 
     saveAiConfig(filteredConfig, enabled);
     setIsSaved(true);
@@ -195,6 +199,38 @@ export default function AiConfigPage() {
                       />
                     </div>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="aiType" className="text-xs font-black uppercase tracking-widest text-neutral-400">AI 模式</Label>
+                    <Select value={formData.aiType} onValueChange={(val) => handleChange('aiType', val)}>
+                      <SelectTrigger id="aiType" className="bg-neutral-950 border-neutral-800 rounded-2xl h-12 text-white">
+                        <SelectValue placeholder="选择模式" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-neutral-900 border-neutral-800 text-white rounded-2xl">
+                        <SelectItem value="0">网络模式</SelectItem>
+                        <SelectItem value="1">本地模式</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    {formData.aiType === '0' ? (
+                      <p className="text-xs text-neutral-500 leading-relaxed">自带 CDN 加速，只能与公网服务交互。如需使用 HomeAssistant 等局域网服务，需将其穿透至公网。</p>
+                    ) : (
+                      <p className="text-xs text-neutral-500 leading-relaxed">支持局域网服务（HomeAssistant 等），可自定义 CDN 加速地址。局域网服务无需暴露至公网。</p>
+                    )}
+                  </div>
+
+                  {formData.aiType === '1' && (
+                    <div className="space-y-2">
+                      <Label htmlFor="cdn" className="text-xs font-black uppercase tracking-widest text-neutral-400">AI 加速 (CDN)</Label>
+                      <Input
+                        id="cdn"
+                        placeholder="防止ai被墙"
+                        value={formData.cdn}
+                        onChange={(e) => handleChange('cdn', e.target.value)}
+                        className="bg-neutral-950 border-neutral-800 rounded-2xl h-12 text-white"
+                      />
+                      <p className="text-xs text-neutral-600 mt-1">可用加速：<button type="button" onClick={() => handleChange('cdn', 'https://r1-py.thd.dpdns.org')} className="text-blue-400 font-mono hover:text-blue-300 underline underline-offset-2 transition-colors cursor-pointer">https://r1-py.thd.dpdns.org</button></p>
+                    </div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="endpoint" className="text-xs font-black uppercase tracking-widest text-neutral-400">接口地址 (Endpoint)</Label>

@@ -205,14 +205,14 @@ export function MusicProvider({ children }: { children: React.ReactNode }) {
   const grantPermission = () => {
     setPermissionRequired(false);
     setProtocolError(null);
-    sessionStorage.setItem('r1_ws_permission', 'granted');
+    localStorage.setItem('r1_ws_permission', 'granted');
     connectDevice();
   };
 
   // Auto-connect logic on IP initialization
   useEffect(() => {
     if (ip) {
-      const alreadyGranted = sessionStorage.getItem('r1_ws_permission') === 'granted';
+      const alreadyGranted = localStorage.getItem('r1_ws_permission') === 'granted';
       if (alreadyGranted) {
         connectDevice();
       } else {
