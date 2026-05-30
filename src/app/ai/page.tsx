@@ -32,6 +32,39 @@ export default function AiConfigPage() {
   const [testResult, setTestResult] = useState<{ success: boolean; message: string } | null>(null);
   const [isSaved, setIsSaved] = useState(false);
 
+  const isLanEndpoint = (url: string) => {
+    try {
+      const host = new URL(url).hostname;
+      return host === 'localhost' || host === '127.0.0.1' ||
+        /^192\.168\.\d{1,3}\.\d{1,3}$/.test(host) ||
+        /^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host) ||
+        /^172\.(1[6-9]|2\d|3[01])\.\d{1,3}\.\d{1,3}$/.test(host);
+    } catch { return false; }
+  };
+  const isLan = isLanEndpoint(formData.endpoint);
+
+  const curlPayload = {
+    model: formData.model,
+    messages: [{ role: 'user', content: '请告诉我北京今天的天气' }],
+    tools: [{
+      type: 'function',
+      function: {
+        name: 'get_current_temperature',
+        description: 'Get the current temperature for a specific location',
+        parameters: {
+          type: 'object',
+          properties: {
+            location: { type: 'string', description: 'The city and state, e.g., San Francisco, CA' },
+            unit: { type: 'string', enum: ['Celsius', 'Fahrenheit'], description: 'The temperature unit to use. Infer this from the user\'s location.' }
+          },
+          required: ['location', 'unit']
+        }
+      }
+    }],
+    function_call: 'auto'
+  };
+  const curlCommand = `curl ${formData.endpoint}/chat/completions \\\n  -H "Content-Type: application/json" \\\n  -H "Authorization: Bearer ${formData.key || '<your key>'}" \\\n  -d '${JSON.stringify(curlPayload)}'`;
+
   // Sync with AI Config from device
   useEffect(() => {
     if (isConnected) {
@@ -294,9 +327,9 @@ export default function AiConfigPage() {
                 <div className="space-y-4">
                   <Button
                     variant="outline"
-                    className={`w-full h-16 rounded-3xl font-black text-sm uppercase tracking-widest transition-all ${isTesting ? 'opacity-50' : 'hover:bg-neutral-800'}`}
+                    className={`w-full h-16 rounded-3xl font-black text-sm uppercase tracking-widest transition-all ${isTesting ? 'opacity-50' : isLan ? 'opacity-40 cursor-not-allowed border-neutral-700 text-neutral-500' : 'hover:bg-neutral-800'}`}
                     onClick={handleTest}
-                    disabled={isTesting}
+                    disabled={isTesting || isLan}
                   >
                     {isTesting ? (
                       <Loader2 className="w-5 h-5 animate-spin mr-2" />
@@ -307,8 +340,8 @@ export default function AiConfigPage() {
                   </Button>
 
                   <Button
-                    className={`w-full h-16 rounded-3xl font-black text-sm uppercase tracking-widest transition-all ${(!enabled || testResult?.success) ? 'bg-blue-500 hover:bg-blue-600 shadow-[0_10px_30px_rgba(59,130,246,0.3)]' : 'bg-neutral-800 opacity-50 cursor-not-allowed'}`}
-                    disabled={(enabled && !testResult?.success) || isSaved}
+                    className={`w-full h-16 rounded-3xl font-black text-sm uppercase tracking-widest transition-all bg-blue-500 hover:bg-blue-600 shadow-[0_10px_30px_rgba(59,130,246,0.3)]`}
+                    disabled={isSaved || isTesting}
                     onClick={handleSave}
                   >
                     {isSaved ? (
@@ -322,20 +355,26 @@ export default function AiConfigPage() {
 
                 {/* Status Messages */}
                 <div className="space-y-4 pt-4 border-t border-neutral-800">
-                  {testResult && (
+                  {isLan ? (
+                    <div className="p-5 rounded-3xl bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold flex gap-3">
+                      <AlertCircle className="w-5 h-5 shrink-0" />
+                      <div className="space-y-2 leading-relaxed">
+                        <p>局域网端点无法从浏览器端验证，请自行确认 AI 服务可用性后直接保存。</p>
+                        <pre className="text-[10px] text-amber-500/70 font-mono whitespace-pre-wrap break-all bg-amber-950/20 p-3 rounded-2xl border border-amber-500/10">{curlCommand}</pre>
+                      </div>
+                    </div>
+                  ) : testResult ? (
                     <div className={`p-4 rounded-3xl text-xs font-bold flex gap-3 ${testResult.success ? 'bg-emerald-500/10 border border-emerald-500/30 text-emerald-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}>
                       {testResult.success ? <CheckCircle2 className="w-5 h-5 shrink-0" /> : <AlertCircle className="w-5 h-5 shrink-0" />}
                       <span className="leading-relaxed">{testResult.message}</span>
                     </div>
-                  )}
-
-                  {!testResult && (
+                  ) : (
                     <div className="p-6 rounded-3xl bg-blue-500/5 border border-blue-500/10 text-neutral-400 text-[10px] leading-loose">
                       <div className="flex items-center gap-2 text-blue-400 font-bold mb-2">
                         <Info className="w-3 h-3" />
                         <div>测试说明</div>
                       </div>
-                      测试将模拟 AI 对话并验证是否能正确触发 <code className="text-blue-300 font-mono">get_current_temperature</code> 函数调用。{enabled ? '通过测试后方可保存。' : '当前已禁用 AI，可直接保存配置。'}
+                      测试将模拟 AI 对话并验证是否能正确触发 <code className="text-blue-300 font-mono">get_current_temperature</code> 函数调用。
                     </div>
                   )}
                 </div>
