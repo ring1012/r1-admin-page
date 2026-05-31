@@ -12,7 +12,7 @@ export default async function onRequest(context) {
   }
 
   try {
-    const targetUrl = `${musicApi.trim().replace(/\/$/, '')}/search?keyword=${encodeURIComponent(keyword)}`;
+    const targetUrl = `${musicApi.trim().replace(/\/$/, '')}/search?keyword=${keyword}`;
     const response = await fetch(targetUrl);
 
     if (!response.ok) {
