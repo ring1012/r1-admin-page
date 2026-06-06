@@ -19,6 +19,9 @@ export default async function onRequest(context) {
     fetchHeaders["Referer"] = "https://www.kuwo.cn/play_detail/";
   } else if (type === 'youtube') {
     fetchUrl = `https://yt.huan.dedyn.io/youtube/music/getlyric?videoId=${id}`;
+  } else if (type.startsWith('lx-')) {
+    const source = type.replace('lx-', '');
+    fetchUrl = `https://lx.air1.bot.cd/api/music/lyric?songmid=${id}&source=${source}`;
   } else {
     return new Response(JSON.stringify({ code: 200, msg: "success", data: { lrclist: [] } }), {
       headers: { 

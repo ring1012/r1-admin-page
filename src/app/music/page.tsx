@@ -92,7 +92,7 @@ export default function MusicDetailsPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (effectiveId && (effectiveLyricsType === 'kuwo' || effectiveLyricsType === 'youtube')) {
+    if (effectiveId && (effectiveLyricsType === 'kuwo' || effectiveLyricsType === 'youtube' || effectiveLyricsType?.startsWith('lx-'))) {
       const fetchLyrics = async () => {
         setIsLoadingLyrics(true);
         try {
