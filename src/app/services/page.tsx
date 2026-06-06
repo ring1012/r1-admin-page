@@ -227,6 +227,15 @@ function MusicServiceCard({ aiType }: { aiType?: number | null }) {
               <button type="button" onClick={() => { setEndpoint('https://bilibili.gptclub.top/music'); setIsSaved(false); }} className="block text-violet-400 font-mono hover:text-violet-300 underline underline-offset-2 transition-colors cursor-pointer text-[11px]">
                 bilibili → https://bilibili.gptclub.top/music
               </button>
+              <button type="button" onClick={() => { setEndpoint('https://media.air1.bot.cd/music/v3/kw'); setIsSaved(false); }} className="block text-emerald-400 font-mono hover:text-emerald-300 underline underline-offset-2 transition-colors cursor-pointer text-[11px]">
+                酷我 → https://media.air1.bot.cd/music/v3/kw
+              </button>
+              <button type="button" onClick={() => { setEndpoint('https://media.air1.bot.cd/music/v3/tx'); setIsSaved(false); }} className="block text-rose-400 font-mono hover:text-rose-300 underline underline-offset-2 transition-colors cursor-pointer text-[11px]">
+                QQ → https://media.air1.bot.cd/music/v3/tx
+              </button>
+              <button type="button" onClick={() => { setEndpoint('https://media.air1.bot.cd/music/v3/wy'); setIsSaved(false); }} className="block text-orange-400 font-mono hover:text-orange-300 underline underline-offset-2 transition-colors cursor-pointer text-[11px]">
+                网易 → https://media.air1.bot.cd/music/v3/wy
+              </button>
             </p>
           </div>
         ) : (
@@ -246,6 +255,9 @@ function MusicServiceCard({ aiType }: { aiType?: number | null }) {
                   <SelectItem value="default">🎵 默认 (Default)</SelectItem>
                   <SelectItem value="youtube">▶️ YouTube Music</SelectItem>
                   <SelectItem value="bilibili">📺 哔哩哔哩 (Bilibili)</SelectItem>
+                  <SelectItem value="kw">🎤 酷我 (KuWo)</SelectItem>
+                  <SelectItem value="tx">🎧 腾讯 (Tencent)</SelectItem>
+                  <SelectItem value="wy">📻 网易云 (NetEase)</SelectItem>
                 </SelectContent>
               </Select>
               <p className="text-xs text-neutral-600 mt-1">
@@ -259,6 +271,9 @@ function MusicServiceCard({ aiType }: { aiType?: number | null }) {
                 {musicServiceConfig.provider === 'default' ? '默认' :
                  musicServiceConfig.provider === 'youtube' ? 'YouTube Music' :
                  musicServiceConfig.provider === 'bilibili' ? '哔哩哔哩' :
+                 musicServiceConfig.provider === 'kw' ? '酷我' :
+                 musicServiceConfig.provider === 'tx' ? 'QQ' :
+                 musicServiceConfig.provider === 'wy' ? '网易云' :
                  musicServiceConfig.provider}
               </div>
             )}
