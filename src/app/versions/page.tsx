@@ -38,6 +38,7 @@ function VersionsPageContent() {
   const [latestVersions, setLatestVersions] = useState<{ echo: number | null, unisound: number | null }>({ echo: null, unisound: null });
   const [isLoading, setIsLoading] = useState(true);
   const [isUpgrading, setIsUpgrading] = useState<string | null>(null);
+  const [releaseNotes, setReleaseNotes] = useState<any[]>([]);
 
   const fetchCurrentVersions = () => {
     if (!ip) return Promise.resolve();
@@ -79,20 +80,26 @@ function VersionsPageContent() {
 
   const fetchLatestVersions = async () => {
     try {
-      const [echoRes, uniRes] = await Promise.all([
+      const [echoRes, uniRes, notesRes] = await Promise.all([
         fetch(`/api/bridge?url=${encodeURIComponent('https://file.huan.dedyn.io/xiaoxun/controller_vers.txt')}`),
-        fetch(`/api/bridge?url=${encodeURIComponent('https://file.huan.dedyn.io/xiaoxun/unisound_vers.txt')}`)
+        fetch(`/api/bridge?url=${encodeURIComponent('https://file.huan.dedyn.io/xiaoxun/unisound_vers.txt')}`),
+        fetch('/api/release-notes')
       ]);
       
-      const [echoText, uniText] = await Promise.all([
+      const [echoText, uniText, notesData] = await Promise.all([
         echoRes.text(),
-        uniRes.text()
+        uniRes.text(),
+        notesRes.json()
       ]);
 
       setLatestVersions({
         echo: parseInt(echoText.trim()),
         unisound: parseInt(uniText.trim())
       });
+
+      if (notesData?.notes) {
+        setReleaseNotes(notesData.notes);
+      }
     } catch (error) {
       console.error("Failed to fetch latest versions:", error);
     }
@@ -338,11 +345,17 @@ function VersionsPageContent() {
                   <CardDescription>按时间倒序展示版本更新记录</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-3">
-                    <div className="border border-neutral-800 rounded-lg p-4">
-                      <div className="text-sm text-neutral-400">2026-08-30</div>
-                      <div className="text-white mt-1">新增发布说明并整合到版本管理页面</div>
-                    </div>
+                  <div className="space-y-4">
+                    {releaseNotes.map((item: any) => (
+                      <div key={item.date} className="rounded-lg border border-neutral-800 p-4">
+                        <div className="text-white font-semibold">{item.date}</div>
+                        <ul className="mt-2 space-y-1 text-neutral-300">
+                          {(item.notes || []).map((note: string, index: number) => (
+                            <li key={index}>• {note}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
