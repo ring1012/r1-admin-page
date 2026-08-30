@@ -307,7 +307,7 @@ function VersionsPageContent() {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div>
               <h1 className="text-4xl font-black text-white tracking-tight">版本管理</h1>
-              <p className="text-neutral-400 mt-2 font-medium">检查并升级 R1 音箱的系统与引擎版本。</p>
+              <p className="text-neutral-400 mt-2 font-medium">检查并升级 R1 音箱的系统与引擎版本，并查看发布说明。</p>
             </div>
             <Button 
               variant="outline" 
@@ -326,10 +326,27 @@ function VersionsPageContent() {
               <p className="font-medium animate-pulse">正在获取版本信息...</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {renderVersionCard("Echo 系统", "echo", "音箱核心控制程序", "3 分钟")}
-              {renderVersionCard("Unisound 引擎", "unisound", "语音识别与合成引擎", "6 分钟")}
-            </div>
+            <>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {renderVersionCard("Echo 系统", "echo", "音箱核心控制程序", "3 分钟")}
+                {renderVersionCard("Unisound 引擎", "unisound", "语音识别与合成引擎", "6 分钟")}
+              </div>
+
+              <Card className="bg-neutral-900 border-neutral-800 mt-8">
+                <CardHeader>
+                  <CardTitle>发布说明</CardTitle>
+                  <CardDescription>按时间倒序展示版本更新记录</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <div className="border border-neutral-800 rounded-lg p-4">
+                      <div className="text-sm text-neutral-400">2026-08-30</div>
+                      <div className="text-white mt-1">新增发布说明并整合到版本管理页面</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </>
           )}
         </div>
       </div>
