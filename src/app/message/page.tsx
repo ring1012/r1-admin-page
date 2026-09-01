@@ -183,7 +183,7 @@ function MessagePageContent() {
         <Card className="w-full max-w-lg shadow-2xl bg-neutral-900/80 backdrop-blur-xl border-neutral-800 text-neutral-100 z-10 transition-all duration-300">
           <CardHeader>
             <CardTitle className="text-3xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-indigo-400">
-              小讯配置
+              系统配置
             </CardTitle>
             <CardDescription className="text-neutral-400 font-medium tracking-wide">
               {ip ? (
