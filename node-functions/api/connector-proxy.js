@@ -1,3 +1,5 @@
+import http from 'node:http';
+
 function javaHashCode(input) {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
@@ -5,6 +7,27 @@ function javaHashCode(input) {
     hash = hash | 0;
   }
   return hash;
+}
+
+function httpRequest(url, options, body) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: 'entry.typo.de5.net',
+      port: 80,
+      path: url,
+      method: options.method,
+      headers: options.headers,
+    }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        resolve({ status: res.statusCode, text: () => data });
+      });
+    });
+    req.on('error', reject);
+    if (body) req.write(body);
+    req.end();
+  });
 }
 
 export default async function onRequest(context) {
@@ -35,19 +58,12 @@ export default async function onRequest(context) {
     const hash = Math.abs(javaHashCode(trimmed));
     const n = hash % 6;
     const targetHost = `xn--3ug.t${n}.typo.de5.net`;
-    const url = `http://entry.typo.de5.net${path}`;
 
-    const fetchOptions = {
-      method,
-      headers: { 'Content-Type': 'application/json', 'Host': targetHost },
-    };
+    const headers = { 'Content-Type': 'application/json', 'Host': targetHost };
+    const bodyStr = (method !== 'GET' && payload !== undefined) ? JSON.stringify(payload) : undefined;
 
-    if (method !== 'GET' && payload !== undefined) {
-      fetchOptions.body = JSON.stringify(payload);
-    }
-
-    const response = await fetch(url, fetchOptions);
-    const data = await response.text();
+    const response = await httpRequest(path, { method, headers }, bodyStr);
+    const data = response.text();
 
     return new Response(data, {
       status: response.status,
